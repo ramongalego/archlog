@@ -1,0 +1,181 @@
+'use client';
+
+import { useState, useRef } from 'react';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import Link from 'next/link';
+
+interface Citation {
+  id: string;
+  title: string;
+  created_at: string;
+}
+
+export function QueryChat({
+  isPro,
+  activeProjectId,
+}: {
+  isPro: boolean;
+  activeProjectId?: string | null;
+}) {
+  const [question, setQuestion] = useState('');
+  const [response, setResponse] = useState('');
+  const [citations, setCitations] = useState<Citation[]>([]);
+  const [loading, setLoading] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
+
+  if (!isPro) {
+    return (
+      <Card className="text-center py-8">
+        <p className="text-gray-700 dark:text-gray-300 font-medium">AI Query is a Pro feature</p>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          Upgrade to Pro to ask questions about your past decisions and get AI-powered insights.
+        </p>
+        <Link href="/dashboard/settings" className="mt-4 inline-block">
+          <Button>Upgrade to Pro</Button>
+        </Link>
+      </Card>
+    );
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!question.trim() || loading) return;
+
+    setLoading(true);
+    setResponse('');
+    setCitations([]);
+
+    abortRef.current = new AbortController();
+
+    try {
+      const res = await fetch('/api/ai/query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          question: question.trim(),
+          project_id: activeProjectId ?? undefined,
+        }),
+        signal: abortRef.current.signal,
+      });
+
+      if (!res.ok) {
+        const body = await res.json();
+        toast.error(body.error || 'Something went wrong.');
+        setLoading(false);
+        return;
+      }
+
+      const reader = res.body?.getReader();
+      if (!reader) {
+        toast.error('Failed to read response stream.');
+        setLoading(false);
+        return;
+      }
+
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+
+        // Parse SSE events from the buffer
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+
+          const jsonStr = line.slice(6);
+          if (!jsonStr) continue;
+
+          try {
+            const event = JSON.parse(jsonStr);
+
+            if (event.type === 'chunk') {
+              setResponse((prev) => prev + event.content);
+            } else if (event.type === 'citations') {
+              setCitations(event.decisions);
+            } else if (event.type === 'error') {
+              toast.error(event.message);
+            }
+          } catch {
+            // Skip malformed JSON lines
+          }
+        }
+      }
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        // User cancelled
+      } else {
+        toast.error('Failed to connect. Please try again.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <form onSubmit={handleSubmit} className="flex gap-2">
+        <input
+          type="text"
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          placeholder="Ask about your decisions... e.g. 'Why did we choose React?'"
+          className="flex-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-gray-400 dark:focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-gray-100/10 transition-colors"
+          disabled={loading}
+        />
+        <Button type="submit" disabled={loading || !question.trim()}>
+          {loading ? 'Thinking...' : 'Ask'}
+        </Button>
+      </form>
+
+      {(response || loading) && (
+        <Card>
+          <div className="prose prose-sm max-w-none text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+            {response}
+            {loading && !response && (
+              <div className="flex justify-center py-4">
+                <svg
+                  className="h-6 w-6 animate-pulse text-gray-300 dark:text-gray-600"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                </svg>
+              </div>
+            )}
+          </div>
+
+          {citations.length > 0 && (
+            <div className="mt-4 border-t border-gray-100 dark:border-gray-800 pt-3">
+              <p className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                Referenced decisions
+              </p>
+              <ul className="mt-1 space-y-1">
+                {citations.map((c) => (
+                  <li key={c.id}>
+                    <Link
+                      href={`/dashboard/decisions/${c.id}`}
+                      className="text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 underline"
+                    >
+                      {c.title}
+                    </Link>
+                    <span className="ml-1 text-xs text-gray-400 dark:text-gray-500">
+                      {new Date(c.created_at).toLocaleDateString()}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </Card>
+      )}
+    </div>
+  );
+}

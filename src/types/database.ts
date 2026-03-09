@@ -1,0 +1,270 @@
+// Generated types matching Supabase schema.
+// In production, regenerate with: npx supabase gen types typescript --local > src/types/database.ts
+
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
+
+export type Database = {
+  public: {
+    Tables: {
+      users: {
+        Row: {
+          id: string;
+          email: string;
+          display_name: string | null;
+          default_review_days: number;
+          digest_opted_in: boolean;
+          timezone: string;
+          stripe_customer_id: string | null;
+          subscription_tier: 'free' | 'pro';
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          email: string;
+          display_name?: string | null;
+          default_review_days?: number;
+          digest_opted_in?: boolean;
+          timezone?: string;
+          stripe_customer_id?: string | null;
+          subscription_tier?: 'free' | 'pro';
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          email?: string;
+          display_name?: string | null;
+          default_review_days?: number;
+          digest_opted_in?: boolean;
+          timezone?: string;
+          stripe_customer_id?: string | null;
+          subscription_tier?: 'free' | 'pro';
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      projects: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          description: string | null;
+          is_default: boolean;
+          is_archived: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          name: string;
+          description?: string | null;
+          is_default?: boolean;
+          is_archived?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          name?: string;
+          description?: string | null;
+          is_default?: boolean;
+          is_archived?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      decisions: {
+        Row: {
+          id: string;
+          project_id: string;
+          user_id: string;
+          title: string;
+          why: Json | null;
+          context: string | null;
+          confidence: 'low' | 'medium' | 'high';
+          category: 'product' | 'pricing' | 'technical' | 'hiring' | 'marketing' | 'other';
+          custom_category: string | null;
+          outcome_status: 'pending' | 'vindicated' | 'reversed' | 'still_playing_out' | 'wrong';
+          outcome_notes: string | null;
+          outcome_recorded_at: string | null;
+          outcome_due_date: string;
+          is_archived: boolean;
+          embedding: string | null;
+          embedding_updated_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          project_id: string;
+          user_id: string;
+          title: string;
+          why?: Json | null;
+          context?: string | null;
+          confidence?: 'low' | 'medium' | 'high';
+          category?: 'product' | 'pricing' | 'technical' | 'hiring' | 'marketing' | 'other';
+          custom_category?: string | null;
+          outcome_status?: 'pending' | 'vindicated' | 'reversed' | 'still_playing_out' | 'wrong';
+          outcome_notes?: string | null;
+          outcome_recorded_at?: string | null;
+          outcome_due_date: string;
+          is_archived?: boolean;
+          embedding?: string | null;
+          embedding_updated_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          project_id?: string;
+          user_id?: string;
+          title?: string;
+          why?: Json | null;
+          context?: string | null;
+          confidence?: 'low' | 'medium' | 'high';
+          category?: 'product' | 'pricing' | 'technical' | 'hiring' | 'marketing' | 'other';
+          custom_category?: string | null;
+          outcome_status?: 'pending' | 'vindicated' | 'reversed' | 'still_playing_out' | 'wrong';
+          outcome_notes?: string | null;
+          outcome_recorded_at?: string | null;
+          outcome_due_date?: string;
+          is_archived?: boolean;
+          embedding?: string | null;
+          embedding_updated_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      decision_edits: {
+        Row: {
+          id: string;
+          decision_id: string;
+          user_id: string;
+          previous_title: string | null;
+          previous_why: Json | null;
+          previous_context: string | null;
+          previous_confidence: 'low' | 'medium' | 'high' | null;
+          previous_category:
+            | 'product'
+            | 'pricing'
+            | 'technical'
+            | 'hiring'
+            | 'marketing'
+            | 'other'
+            | null;
+          edited_at: string;
+        };
+        Insert: {
+          id?: string;
+          decision_id: string;
+          user_id: string;
+          previous_title?: string | null;
+          previous_why?: Json | null;
+          previous_context?: string | null;
+          previous_confidence?: 'low' | 'medium' | 'high' | null;
+          previous_category?:
+            | 'product'
+            | 'pricing'
+            | 'technical'
+            | 'hiring'
+            | 'marketing'
+            | 'other'
+            | null;
+          edited_at?: string;
+        };
+        Update: {
+          id?: string;
+          decision_id?: string;
+          user_id?: string;
+          previous_title?: string | null;
+          previous_why?: Json | null;
+          previous_context?: string | null;
+          previous_confidence?: 'low' | 'medium' | 'high' | null;
+          previous_category?:
+            | 'product'
+            | 'pricing'
+            | 'technical'
+            | 'hiring'
+            | 'marketing'
+            | 'other'
+            | null;
+          edited_at?: string;
+        };
+        Relationships: [];
+      };
+      subscriptions: {
+        Row: {
+          id: string;
+          user_id: string;
+          stripe_subscription_id: string;
+          stripe_price_id: string;
+          status: string;
+          current_period_start: string | null;
+          current_period_end: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          stripe_subscription_id: string;
+          stripe_price_id: string;
+          status: string;
+          current_period_start?: string | null;
+          current_period_end?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          stripe_subscription_id?: string;
+          stripe_price_id?: string;
+          status?: string;
+          current_period_start?: string | null;
+          current_period_end?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+    };
+    Views: Record<string, never>;
+    Functions: {
+      match_decisions: {
+        Args: {
+          query_embedding: string;
+          match_threshold?: number;
+          match_count?: number;
+          p_user_id: string;
+          p_project_id?: string | null;
+        };
+        Returns: {
+          id: string;
+          title: string;
+          why: Json | null;
+          context: string | null;
+          confidence: string;
+          category: string;
+          outcome_status: string;
+          outcome_notes: string | null;
+          created_at: string;
+          similarity: number;
+        }[];
+      };
+    };
+    Enums: {
+      confidence_level: 'low' | 'medium' | 'high';
+      decision_category: 'product' | 'pricing' | 'technical' | 'hiring' | 'marketing' | 'other';
+      outcome_status: 'pending' | 'vindicated' | 'reversed' | 'still_playing_out' | 'wrong';
+      subscription_tier: 'free' | 'pro';
+    };
+    CompositeTypes: Record<string, never>;
+  };
+};
