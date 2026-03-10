@@ -30,7 +30,11 @@ export function ArchiveButton({
       toast.error(result.error);
       setLoading(false);
     } else {
-      toast.success(isArchived ? 'Decision restored.' : 'Decision archived.');
+      if (isArchived) {
+        toast.success('Decision restored.');
+      } else {
+        toast.info('Decision archived.');
+      }
       router.refresh();
       setLoading(false);
     }

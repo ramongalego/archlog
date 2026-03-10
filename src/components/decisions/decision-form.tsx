@@ -130,7 +130,7 @@ export function DecisionForm({ action, projectId, projects, initialData }: Decis
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!title.trim()) {
-      toast.error('Title is required.');
+      toast.warning('Title is required.');
       return;
     }
     setSubmitting(true);

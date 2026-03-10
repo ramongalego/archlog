@@ -108,12 +108,10 @@ export async function* queryDecisions(params: {
 
   const contextBlock = contextLines.join('\n\n');
 
-  // Keep citation metadata for decisions used as context
-  const citedDecisions = decisions.map((d) => ({
-    id: d.id,
-    title: d.title,
-    created_at: d.created_at,
-  }));
+  // Map index to decision metadata for citation lookup
+  const decisionsByIndex = new Map(
+    decisions.map((d, i) => [i + 1, { id: d.id, title: d.title, created_at: d.created_at }])
+  );
 
   const anthropic = new Anthropic();
 
@@ -125,7 +123,9 @@ export async function* queryDecisions(params: {
         role: 'user',
         content: `You are a decision journal assistant. The user is asking about their past decisions. Answer based only on the decisions provided below. If the answer is not in the decisions, say so honestly.
 
-Keep your answers concise and practical. Just explain the reasoning directly. Don't reference decision titles, numbers, or IDs. Don't use em dashes. Write plainly.
+Keep your answers concise and practical. Just explain the reasoning directly. Don't reference decision titles, numbers, or IDs in your answer text. Don't use em dashes. Write plainly.
+
+After your answer, on a new line, write REFS: followed by a comma-separated list of the decision numbers you actually used (e.g. REFS: 1, 3). Only include decisions that are directly relevant to the answer. If none were relevant, write REFS: none.
 
 Here are the user's logged decisions:
 
@@ -136,9 +136,27 @@ Question: ${params.question}`,
     ],
   });
 
+  let fullText = '';
   for await (const event of stream) {
     if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
+      fullText += event.delta.text;
       yield { type: 'chunk', content: event.delta.text };
+    }
+  }
+
+  // Parse REFS line to find which decisions were actually used
+  const refsMatch = fullText.match(/REFS:\s*(.+)/i);
+  const citedDecisions: { id: string; title: string; created_at: string }[] = [];
+
+  if (refsMatch && refsMatch[1].trim().toLowerCase() !== 'none') {
+    const indices = refsMatch[1]
+      .split(',')
+      .map((s) => parseInt(s.trim(), 10))
+      .filter((n) => !isNaN(n));
+
+    for (const idx of indices) {
+      const d = decisionsByIndex.get(idx);
+      if (d) citedDecisions.push(d);
     }
   }
 

@@ -100,6 +100,8 @@ export function QueryChat({
               setResponse((prev) => prev + event.content);
             } else if (event.type === 'citations') {
               setCitations(event.decisions);
+              // Strip the REFS: line from the displayed response
+              setResponse((prev) => prev.replace(/\n?REFS:\s*.+$/i, '').trimEnd());
             } else if (event.type === 'error') {
               toast.error(event.message);
             }

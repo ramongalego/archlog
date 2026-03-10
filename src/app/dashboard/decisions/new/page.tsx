@@ -4,8 +4,14 @@ import { DecisionForm } from '@/components/decisions/decision-form';
 import { PageHeader } from '@/components/ui/page-header';
 import { createDecision } from '../actions';
 import { getActiveProjectId } from '@/lib/active-project';
+import { acceptSuggestion } from '@/app/dashboard/suggestions/actions';
 
-export default async function NewDecisionPage() {
+interface Props {
+  searchParams: Promise<{ [key: string]: string | undefined }>;
+}
+
+export default async function NewDecisionPage({ searchParams }: Props) {
+  const params = await searchParams;
   const supabase = await createClient();
   const {
     data: { user },
@@ -28,10 +34,46 @@ export default async function NewDecisionPage() {
     projectId = defaultProject.id;
   }
 
+  // Pre-fill from a GitHub suggestion if coming from the suggestions page
+  const fromSuggestion = params.from_suggestion;
+  const prefilled = fromSuggestion
+    ? {
+        title: params.title ?? '',
+        why: null,
+        context: [params.context, params.alternatives ? `Alternatives: ${params.alternatives}` : '']
+          .filter(Boolean)
+          .join('\n\n'),
+        confidence: 'medium' as const,
+        category: 'technical' as const,
+        custom_category: '',
+      }
+    : undefined;
+
+  // Wrap createDecision to also mark the suggestion as accepted
+  async function createFromSuggestion(formData: FormData) {
+    'use server';
+    const result = await createDecision(formData);
+    if (!result.error && fromSuggestion) {
+      await acceptSuggestion(fromSuggestion);
+    }
+    return result;
+  }
+
+  const isFromSuggestion = !!fromSuggestion;
+
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <PageHeader title="Log a Decision" />
-      <DecisionForm action={createDecision} projectId={projectId} />
+      <PageHeader title={isFromSuggestion ? 'Review Suggested Decision' : 'Log a Decision'} />
+      {isFromSuggestion && (
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Review and edit the details below before saving. This was extracted from a GitHub PR.
+        </p>
+      )}
+      <DecisionForm
+        action={isFromSuggestion ? createFromSuggestion : createDecision}
+        projectId={projectId}
+        initialData={prefilled}
+      />
     </div>
   );
 }

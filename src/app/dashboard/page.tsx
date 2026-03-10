@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { PageHeader } from '@/components/ui/page-header';
 import { DecisionList } from '@/components/decisions/decision-card';
+import { SuggestionsBanner } from '@/components/integrations/suggestions-banner';
 import { getActiveProjectId } from '@/lib/active-project';
 import type { DecisionCardData } from '@/components/decisions/decision-card';
 import type { Decision } from '@/types/decisions';
@@ -57,6 +58,19 @@ export default async function DashboardPage() {
 
   const { data: reviewsDue } = (await reviewQuery) as { data: ReviewDue[] | null };
 
+  // Count pending suggested decisions
+  let suggestionsQuery = supabase
+    .from('suggested_decisions')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+    .eq('status', 'pending');
+
+  if (activeProjectId) {
+    suggestionsQuery = suggestionsQuery.eq('project_id', activeProjectId);
+  }
+
+  const { count: pendingSuggestionsCount } = await suggestionsQuery;
+
   return (
     <div className="mx-auto max-w-3xl space-y-8">
       <PageHeader title="Dashboard">
@@ -64,6 +78,11 @@ export default async function DashboardPage() {
           <Button>Log a Decision</Button>
         </Link>
       </PageHeader>
+
+      {/* Suggested Decisions Banner */}
+      {(pendingSuggestionsCount ?? 0) > 0 && (
+        <SuggestionsBanner count={pendingSuggestionsCount!} />
+      )}
 
       {/* Reviews Due */}
       {reviewsDue && reviewsDue.length > 0 && (

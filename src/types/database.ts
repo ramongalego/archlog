@@ -234,6 +234,99 @@ export type Database = {
         };
         Relationships: [];
       };
+      github_connections: {
+        Row: {
+          id: string;
+          user_id: string;
+          access_token_encrypted: string;
+          github_username: string;
+          selected_repo: string | null;
+          last_scan_at: string | null;
+          last_scan_count: number | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          access_token_encrypted: string;
+          github_username: string;
+          selected_repo?: string | null;
+          last_scan_at?: string | null;
+          last_scan_count?: number | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          access_token_encrypted?: string;
+          github_username?: string;
+          selected_repo?: string | null;
+          last_scan_at?: string | null;
+          last_scan_count?: number | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      suggested_decisions: {
+        Row: {
+          id: string;
+          user_id: string;
+          project_id: string;
+          github_connection_id: string;
+          pr_url: string;
+          pr_number: number;
+          pr_title: string;
+          pr_author: string | null;
+          pr_body: string | null;
+          extracted_title: string;
+          extracted_reasoning: string;
+          extracted_alternatives: string | null;
+          confidence: string;
+          status: 'pending' | 'accepted' | 'dismissed';
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          project_id: string;
+          github_connection_id: string;
+          pr_url: string;
+          pr_number: number;
+          pr_title: string;
+          pr_author?: string | null;
+          pr_body?: string | null;
+          extracted_title: string;
+          extracted_reasoning: string;
+          extracted_alternatives?: string | null;
+          confidence?: string;
+          status?: 'pending' | 'accepted' | 'dismissed';
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          project_id?: string;
+          github_connection_id?: string;
+          pr_url?: string;
+          pr_number?: number;
+          pr_title?: string;
+          pr_author?: string | null;
+          pr_body?: string | null;
+          extracted_title?: string;
+          extracted_reasoning?: string;
+          extracted_alternatives?: string | null;
+          confidence?: string;
+          status?: 'pending' | 'accepted' | 'dismissed';
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -264,6 +357,7 @@ export type Database = {
       decision_category: 'product' | 'pricing' | 'technical' | 'hiring' | 'marketing' | 'other';
       outcome_status: 'pending' | 'vindicated' | 'reversed' | 'still_playing_out' | 'wrong';
       subscription_tier: 'free' | 'pro';
+      suggestion_status: 'pending' | 'accepted' | 'dismissed';
     };
     CompositeTypes: Record<string, never>;
   };

@@ -6,6 +6,9 @@ export type Project = Database['public']['Tables']['projects']['Row'];
 export type Decision = Database['public']['Tables']['decisions']['Row'];
 export type DecisionEdit = Database['public']['Tables']['decision_edits']['Row'];
 export type Subscription = Database['public']['Tables']['subscriptions']['Row'];
+export type GitHubConnection = Database['public']['Tables']['github_connections']['Row'];
+export type SuggestedDecision = Database['public']['Tables']['suggested_decisions']['Row'];
+export type SuggestionStatus = Database['public']['Enums']['suggestion_status'];
 
 // Enum types
 export type ConfidenceLevel = Database['public']['Enums']['confidence_level'];

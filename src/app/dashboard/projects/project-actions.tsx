@@ -114,7 +114,7 @@ export function ProjectActions({ projects }: { projects: ProjectItem[] }) {
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success('Project archived. Decisions moved to default project.');
+        toast.info('Project archived. Decisions moved to default project.');
         router.refresh();
       }
     });
@@ -141,7 +141,7 @@ export function ProjectActions({ projects }: { projects: ProjectItem[] }) {
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success('Project deleted.');
+        toast.info('Project deleted.');
         router.refresh();
       }
     });
