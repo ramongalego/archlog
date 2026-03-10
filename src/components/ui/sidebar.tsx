@@ -69,10 +69,11 @@ export function Sidebar() {
       if (!user) return;
 
       // Read active project from cookie
-      const activeProject = document.cookie
-        .split('; ')
-        .find((c) => c.startsWith('active_project='))
-        ?.split('=')[1] ?? null;
+      const activeProject =
+        document.cookie
+          .split('; ')
+          .find((c) => c.startsWith('active_project='))
+          ?.split('=')[1] ?? null;
 
       let query = supabase
         .from('decisions')

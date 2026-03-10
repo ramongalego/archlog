@@ -47,7 +47,7 @@ export const OUTCOME_LABELS: Record<OutcomeStatus, string> = {
 };
 
 export const OUTCOME_COLORS: Record<OutcomeStatus, string> = {
-  pending: 'bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400',
+  pending: 'bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-300',
   vindicated: 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400',
   reversed: 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400',
   still_playing_out: 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400',

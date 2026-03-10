@@ -10,7 +10,13 @@ import { OUTCOME_LABELS, type OutcomeStatus } from '@/types/decisions';
 
 const OUTCOME_OPTIONS: OutcomeStatus[] = ['vindicated', 'reversed', 'still_playing_out'];
 
-export function OutcomeForm({ decisionId }: { decisionId: string }) {
+export function OutcomeForm({
+  decisionId,
+  onCancel,
+}: {
+  decisionId: string;
+  onCancel?: () => void;
+}) {
   const router = useRouter();
   const [status, setStatus] = useState<OutcomeStatus>('vindicated');
   const [notes, setNotes] = useState('');
@@ -73,9 +79,20 @@ export function OutcomeForm({ decisionId }: { decisionId: string }) {
         />
       </div>
 
-      <Button type="submit" size="sm" disabled={submitting}>
-        {submitting ? 'Saving...' : 'Record Outcome'}
-      </Button>
+      <div className="flex items-center gap-3">
+        <Button type="submit" size="sm" disabled={submitting}>
+          {submitting ? 'Saving...' : 'Record Outcome'}
+        </Button>
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+          >
+            Cancel
+          </button>
+        )}
+      </div>
     </form>
   );
 }

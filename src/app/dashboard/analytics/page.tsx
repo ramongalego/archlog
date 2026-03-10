@@ -73,7 +73,9 @@ export default async function AnalyticsPage() {
   // --- Compute stats ---
 
   const total = all.length;
-  const reviewed = all.filter((d) => d.outcome_status !== 'pending');
+  const reviewed = all.filter(
+    (d) => d.outcome_status !== 'pending' && d.outcome_status !== 'still_playing_out'
+  );
   const reviewedCount = reviewed.length;
   const now = new Date();
 
@@ -113,7 +115,11 @@ export default async function AnalyticsPage() {
       const inCat = all.filter((d) => d.category === cat);
       return { category: cat, count: inCat.length };
     })
-    .filter((c) => c.count > 0);
+    .filter((c) => c.count > 0)
+    .sort(
+      (a, b) =>
+        b.count - a.count || CATEGORY_LABELS[a.category].localeCompare(CATEGORY_LABELS[b.category])
+    );
   const maxCategoryCount = Math.max(...categories.map((c) => c.count), 1);
 
   // Category × Outcome heatmap

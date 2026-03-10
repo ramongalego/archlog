@@ -5,14 +5,12 @@ import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { TiptapReadOnly } from '@/components/decisions/tiptap-editor';
-import { OutcomeForm } from '@/components/decisions/outcome-form';
+import { OutcomeSection } from '@/components/decisions/outcome-section';
 import { ArchiveButton } from './archive-button';
 import {
   CONFIDENCE_LABELS,
   CONFIDENCE_COLORS,
   CATEGORY_LABELS,
-  OUTCOME_LABELS,
-  OUTCOME_COLORS,
   getOutcomeDisplay,
   type Decision,
   type DecisionEdit,
@@ -42,9 +40,6 @@ export default async function DecisionDetailPage({ params }: { params: Promise<{
     .single()) as { data: Decision | null };
 
   if (!decision) notFound();
-
-  const showOutcomeForm =
-    decision.outcome_status === 'pending' || decision.outcome_status === 'still_playing_out';
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -107,31 +102,13 @@ export default async function DecisionDetailPage({ params }: { params: Promise<{
       )}
 
       {/* Outcome section */}
-      {decision.outcome_status !== 'pending' && decision.outcome_notes && (
-        <Card>
-          <h2 className="mb-2 text-sm font-medium text-gray-500 dark:text-gray-400">Outcome</h2>
-          <Badge className={OUTCOME_COLORS[decision.outcome_status]}>
-            {OUTCOME_LABELS[decision.outcome_status]}
-          </Badge>
-          <p className="mt-2 text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-            {decision.outcome_notes}
-          </p>
-          {decision.outcome_recorded_at && (
-            <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-              Recorded {formatDate(decision.outcome_recorded_at)}
-            </p>
-          )}
-        </Card>
-      )}
-
-      {showOutcomeForm && (
-        <Card>
-          <h2 className="mb-3 text-sm font-medium text-gray-500 dark:text-gray-400">
-            Record Outcome
-          </h2>
-          <OutcomeForm decisionId={decision.id} />
-        </Card>
-      )}
+      <OutcomeSection
+        decisionId={decision.id}
+        outcomeStatus={decision.outcome_status}
+        outcomeNotes={decision.outcome_notes}
+        outcomeRecordedAt={decision.outcome_recorded_at}
+        createdAt={decision.created_at}
+      />
 
       {/* Edit History */}
       <Suspense

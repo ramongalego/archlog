@@ -10,7 +10,7 @@ import { SuggestionsBanner } from '@/components/integrations/suggestions-banner'
 import { getActiveProjectId } from '@/lib/active-project';
 import type { DecisionCardData } from '@/components/decisions/decision-card';
 import type { Decision } from '@/types/decisions';
-import { formatRelativeDate, daysUntil } from '@/lib/utils';
+import { daysUntil } from '@/lib/utils';
 
 type ReviewDue = Pick<Decision, 'id' | 'title' | 'outcome_due_date' | 'created_at'>;
 
@@ -71,6 +71,30 @@ export default async function DashboardPage() {
 
   const { data: pendingSuggestions } = await suggestionsQuery;
 
+  // Analytics sample — total, overdue, vindication rate
+  let statsQuery = supabase
+    .from('decisions')
+    .select('outcome_status')
+    .eq('user_id', user.id)
+    .eq('is_archived', false);
+
+  if (activeProjectId) {
+    statsQuery = statsQuery.eq('project_id', activeProjectId);
+  }
+
+  const { data: allDecisions } = (await statsQuery) as {
+    data: Pick<Decision, 'outcome_status'>[] | null;
+  };
+  const allDecs = allDecisions ?? [];
+  const totalCount = allDecs.length;
+  const reviewed = allDecs.filter(
+    (d) => d.outcome_status !== 'pending' && d.outcome_status !== 'still_playing_out'
+  );
+  const vindicatedCount = reviewed.filter((d) => d.outcome_status === 'vindicated').length;
+  const vindicatedPct =
+    reviewed.length > 0 ? Math.round((vindicatedCount / reviewed.length) * 100) : null;
+  const overdueCount = (reviewsDue ?? []).length;
+
   const suggestionCounts: Record<string, number> = {};
   for (const s of pendingSuggestions ?? []) {
     suggestionCounts[s.source] = (suggestionCounts[s.source] || 0) + 1;
@@ -93,6 +117,39 @@ export default async function DashboardPage() {
           </Link>
         </div>
       </PageHeader>
+
+      {/* Analytics sample */}
+      {totalCount >= 5 && (
+        <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+          <span className="font-medium text-gray-700 dark:text-gray-300">{totalCount}</span>{' '}
+          decisions total
+          {overdueCount > 0 && (
+            <>
+              <span className="text-gray-300 dark:text-gray-600">&middot;</span>
+              <span className="font-medium text-amber-600 dark:text-amber-400">
+                {overdueCount}
+              </span>{' '}
+              overdue
+            </>
+          )}
+          {vindicatedPct !== null && (
+            <>
+              <span className="text-gray-300 dark:text-gray-600">&middot;</span>
+              <span className="font-medium text-gray-700 dark:text-gray-300">
+                {vindicatedPct}%
+              </span>{' '}
+              validated
+            </>
+          )}
+          <span className="text-gray-300 dark:text-gray-600">&middot;</span>
+          <Link
+            href="/dashboard/analytics"
+            className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 underline underline-offset-2"
+          >
+            View analytics &rarr;
+          </Link>
+        </div>
+      )}
 
       {/* Suggested Decisions Banners */}
       {Object.keys(suggestionCounts).length > 0 && (
@@ -117,9 +174,8 @@ export default async function DashboardPage() {
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                       {d.title}
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Decided {formatRelativeDate(d.created_at)} &middot; Review overdue by{' '}
-                      {Math.abs(daysUntil(d.outcome_due_date))} days
+                    <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+                      Overdue by {Math.abs(daysUntil(d.outcome_due_date))} days
                     </p>
                   </div>
                   <Badge className="bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">

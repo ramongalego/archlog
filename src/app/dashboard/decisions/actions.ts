@@ -98,6 +98,7 @@ export async function listDecisions(params: {
   dateTo?: string;
   page?: number;
   pageSize?: number;
+  showArchived?: boolean;
 }) {
   const supabase = await createClient();
   const {
@@ -127,9 +128,12 @@ export async function listDecisions(params: {
     .from('decisions')
     .select('*', { count: 'exact' })
     .eq('user_id', user.id)
-    .eq('is_archived', false)
     .order('created_at', { ascending: false })
     .range(from, to);
+
+  if (!params.showArchived) {
+    query = query.eq('is_archived', false);
+  }
 
   if (projectId) {
     query = query.eq('project_id', projectId);
