@@ -50,11 +50,7 @@ export async function getRepos(token: string): Promise<GitHubRepo[]> {
   );
 }
 
-export async function getMergedPRs(
-  token: string,
-  repo: string,
-  limit = 50
-): Promise<GitHubPR[]> {
+export async function getMergedPRs(token: string, repo: string, limit = 50): Promise<GitHubPR[]> {
   // Fetch closed PRs, then filter to merged only
   const prs = await ghFetch<GitHubPR[]>(
     `/repos/${repo}/pulls?state=closed&sort=updated&direction=desc&per_page=${limit}`,

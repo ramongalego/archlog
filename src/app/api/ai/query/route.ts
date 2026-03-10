@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { canUseAiQuery, canSearchCrossProject } from '@/lib/stripe/plans';
 import { queryDecisions } from '@/lib/ai/query';
+import { aiQuerySchema } from '@/lib/validation';
 import type { User } from '@/types/decisions';
 
 export async function POST(request: Request) {
@@ -31,29 +32,22 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const question = body.question;
-  const projectId = body.project_id;
+  const parsed = aiQuerySchema.safeParse(body);
+  if (!parsed.success) {
+    return new Response(JSON.stringify({ error: parsed.error.issues[0].message }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  const { question, project_id } = parsed.data;
 
   // Cross-project query (no project_id) requires Pro with cross-project search
-  if (!projectId && !canSearchCrossProject(profile.subscription_tier)) {
+  if (!project_id && !canSearchCrossProject(profile.subscription_tier)) {
     return new Response(
       JSON.stringify({ error: 'Cross-project search is available on the Pro plan.' }),
       { status: 403, headers: { 'Content-Type': 'application/json' } }
     );
-  }
-
-  if (!question || typeof question !== 'string' || question.trim().length === 0) {
-    return new Response(JSON.stringify({ error: 'question is required' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
-
-  if (question.length > 2000) {
-    return new Response(JSON.stringify({ error: 'Question must be under 2000 characters' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    });
   }
 
   // Stream the response as SSE
@@ -64,7 +58,7 @@ export async function POST(request: Request) {
       try {
         const generator = queryDecisions({
           question: question.trim(),
-          projectId: projectId || undefined,
+          projectId: project_id || undefined,
           userId: user.id,
         });
 

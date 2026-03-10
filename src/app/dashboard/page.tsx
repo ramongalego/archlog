@@ -58,10 +58,10 @@ export default async function DashboardPage() {
 
   const { data: reviewsDue } = (await reviewQuery) as { data: ReviewDue[] | null };
 
-  // Count pending suggested decisions
+  // Fetch pending suggestions with source to show per-source banners
   let suggestionsQuery = supabase
     .from('suggested_decisions')
-    .select('*', { count: 'exact', head: true })
+    .select('source')
     .eq('user_id', user.id)
     .eq('status', 'pending');
 
@@ -69,7 +69,12 @@ export default async function DashboardPage() {
     suggestionsQuery = suggestionsQuery.eq('project_id', activeProjectId);
   }
 
-  const { count: pendingSuggestionsCount } = await suggestionsQuery;
+  const { data: pendingSuggestions } = await suggestionsQuery;
+
+  const suggestionCounts: Record<string, number> = {};
+  for (const s of pendingSuggestions ?? []) {
+    suggestionCounts[s.source] = (suggestionCounts[s.source] || 0) + 1;
+  }
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">
@@ -79,9 +84,13 @@ export default async function DashboardPage() {
         </Link>
       </PageHeader>
 
-      {/* Suggested Decisions Banner */}
-      {(pendingSuggestionsCount ?? 0) > 0 && (
-        <SuggestionsBanner count={pendingSuggestionsCount!} />
+      {/* Suggested Decisions Banners */}
+      {Object.keys(suggestionCounts).length > 0 && (
+        <div className="space-y-2">
+          {Object.entries(suggestionCounts).map(([source, count]) => (
+            <SuggestionsBanner key={source} source={source} count={count} />
+          ))}
+        </div>
       )}
 
       {/* Reviews Due */}

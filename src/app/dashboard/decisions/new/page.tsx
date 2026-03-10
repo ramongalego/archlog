@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { createDecision } from '../actions';
 import { getActiveProjectId } from '@/lib/active-project';
 import { acceptSuggestion } from '@/app/dashboard/suggestions/actions';
+import type { DecisionCategory } from '@/types/decisions';
 
 interface Props {
   searchParams: Promise<{ [key: string]: string | undefined }>;
@@ -34,8 +35,19 @@ export default async function NewDecisionPage({ searchParams }: Props) {
     projectId = defaultProject.id;
   }
 
-  // Pre-fill from a GitHub suggestion if coming from the suggestions page
+  // Pre-fill from a suggestion if coming from the suggestions page
   const fromSuggestion = params.from_suggestion;
+  const validCategories: DecisionCategory[] = [
+    'product',
+    'pricing',
+    'technical',
+    'hiring',
+    'marketing',
+    'other',
+  ];
+  const suggestedCategory = validCategories.includes(params.category as DecisionCategory)
+    ? (params.category as DecisionCategory)
+    : 'technical';
   const prefilled = fromSuggestion
     ? {
         title: params.title ?? '',
@@ -44,7 +56,7 @@ export default async function NewDecisionPage({ searchParams }: Props) {
           .filter(Boolean)
           .join('\n\n'),
         confidence: 'medium' as const,
-        category: 'technical' as const,
+        category: suggestedCategory,
         custom_category: '',
       }
     : undefined;
@@ -66,13 +78,14 @@ export default async function NewDecisionPage({ searchParams }: Props) {
       <PageHeader title={isFromSuggestion ? 'Review Suggested Decision' : 'Log a Decision'} />
       {isFromSuggestion && (
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          Review and edit the details below before saving. This was extracted from a GitHub PR.
+          Review and edit the details below before saving.
         </p>
       )}
       <DecisionForm
         action={isFromSuggestion ? createFromSuggestion : createDecision}
         projectId={projectId}
         initialData={prefilled}
+        redirectTo={isFromSuggestion ? '/dashboard/suggestions' : undefined}
       />
     </div>
   );

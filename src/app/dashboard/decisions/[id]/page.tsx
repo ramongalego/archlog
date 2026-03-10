@@ -17,11 +17,15 @@ import {
   type DecisionEdit,
 } from '@/types/decisions';
 import { formatDate } from '@/lib/utils';
+import { validateRouteId } from '@/lib/validation';
 import Link from 'next/link';
 import type { JSONContent } from '@tiptap/react';
 
 export default async function DecisionDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+  const { id: rawId } = await params;
+  const id = validateRouteId(rawId);
+  if (!id) notFound();
+
   const supabase = await createClient();
   const {
     data: { user },

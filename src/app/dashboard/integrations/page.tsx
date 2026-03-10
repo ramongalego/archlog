@@ -28,12 +28,13 @@ export default async function IntegrationsPage() {
     > | null;
   };
 
-  // Count actually pending suggestions (not the stale scan count)
+  // Count pending suggestions from GitHub only (not text or other sources)
   const { count: pendingCount } = await supabase
     .from('suggested_decisions')
     .select('*', { count: 'exact', head: true })
     .eq('user_id', user.id)
-    .eq('status', 'pending');
+    .eq('status', 'pending')
+    .eq('source', 'github');
 
   // Fall back to default project if no active project
   let projectId = activeProjectId;
@@ -52,13 +53,27 @@ export default async function IntegrationsPage() {
       <PageHeader title="Integrations" />
 
       <div className="grid gap-4">
-        <GitHubCard connection={connection} projectId={projectId} pendingCount={pendingCount ?? 0} />
+        <GitHubCard
+          connection={connection}
+          projectId={projectId}
+          pendingCount={pendingCount ?? 0}
+        />
 
         {/* Placeholder cards for future integrations */}
         <Card className="flex items-center gap-3 opacity-50">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/30">
-            <svg className="h-5 w-5 text-purple-600 dark:text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+            <svg
+              className="h-5 w-5 text-purple-600 dark:text-purple-400"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
+              />
             </svg>
           </div>
           <div>
@@ -69,8 +84,18 @@ export default async function IntegrationsPage() {
 
         <Card className="flex items-center gap-3 opacity-50">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
-            <svg className="h-5 w-5 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            <svg
+              className="h-5 w-5 text-blue-600 dark:text-blue-400"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+              />
             </svg>
           </div>
           <div>

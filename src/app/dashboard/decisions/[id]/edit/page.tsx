@@ -3,11 +3,16 @@ import { redirect, notFound } from 'next/navigation';
 import { DecisionForm } from '@/components/decisions/decision-form';
 import { PageHeader } from '@/components/ui/page-header';
 import { updateDecision } from '../../actions';
+import { validateRouteId } from '@/lib/validation';
 import type { Decision, Project } from '@/types/decisions';
 import type { JSONContent } from '@tiptap/react';
 
 export default async function EditDecisionPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+  const { id: rawId } = await params;
+  const validId = validateRouteId(rawId);
+  if (!validId) notFound();
+  const id = validId;
+
   const supabase = await createClient();
   const {
     data: { user },

@@ -25,7 +25,7 @@ export default async function AskPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <PageHeader title="Ask your decisions" />
+        <PageHeader title="Ask about your decisions" />
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           Ask questions about your past decisions and get answers grounded in what you actually
           logged.

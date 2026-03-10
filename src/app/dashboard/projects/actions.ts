@@ -3,6 +3,12 @@
 import { createClient } from '@/lib/supabase/server';
 import { friendlyError } from '@/lib/supabase/errors';
 import { canCreateProject } from '@/lib/stripe/plans';
+import {
+  createProjectSchema,
+  updateProjectSchema,
+  projectIdSchema,
+  parseFormData,
+} from '@/lib/validation';
 import type { User, Project } from '@/types/decisions';
 
 export async function createProject(formData: FormData): Promise<{ id?: string; error?: string }> {
@@ -13,10 +19,9 @@ export async function createProject(formData: FormData): Promise<{ id?: string; 
 
   if (!user) return { error: 'Unauthorized' };
 
-  const name = formData.get('name') as string;
-  const description = formData.get('description') as string;
-
-  if (!name?.trim()) return { error: 'Project name is required' };
+  const parsed = parseFormData(createProjectSchema, formData);
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+  const { name, description } = parsed.data;
 
   // Check plan limits
   const { data: profile } = (await supabase
@@ -44,8 +49,8 @@ export async function createProject(formData: FormData): Promise<{ id?: string; 
     .from('projects')
     .insert({
       user_id: user.id,
-      name: name.trim(),
-      description: description?.trim() || null,
+      name,
+      description: description || null,
     } as Project)
     .select('id')
     .single()) as { data: { id: string } | null; error: { message: string } | null };
@@ -62,18 +67,15 @@ export async function updateProject(formData: FormData): Promise<{ error?: strin
 
   if (!user) return { error: 'Unauthorized' };
 
-  const id = formData.get('id') as string;
-  const name = formData.get('name') as string;
-  const description = formData.get('description') as string;
-
-  if (!id) return { error: 'Project ID is required' };
-  if (!name?.trim()) return { error: 'Project name is required' };
+  const parsed = parseFormData(updateProjectSchema, formData);
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+  const { id, name, description } = parsed.data;
 
   const { error } = (await supabase
     .from('projects')
     .update({
-      name: name.trim(),
-      description: description?.trim() || null,
+      name,
+      description: description || null,
     } as Partial<Project>)
     .eq('id', id)
     .eq('user_id', user.id)) as { error: { message: string } | null };
@@ -83,6 +85,9 @@ export async function updateProject(formData: FormData): Promise<{ error?: strin
 }
 
 export async function archiveProject(projectId: string): Promise<{ error?: string }> {
+  const parsed = projectIdSchema.safeParse({ projectId });
+  if (!parsed.success) return { error: 'Invalid project ID' };
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -94,7 +99,7 @@ export async function archiveProject(projectId: string): Promise<{ error?: strin
   const { data: project } = (await supabase
     .from('projects')
     .select('is_default')
-    .eq('id', projectId)
+    .eq('id', parsed.data.projectId)
     .eq('user_id', user.id)
     .single()) as { data: Pick<Project, 'is_default'> | null };
 
@@ -115,7 +120,7 @@ export async function archiveProject(projectId: string): Promise<{ error?: strin
   const { error: moveError } = (await supabase
     .from('decisions')
     .update({ project_id: defaultProject.id } as Partial<Project>)
-    .eq('project_id', projectId)
+    .eq('project_id', parsed.data.projectId)
     .eq('user_id', user.id)) as { error: { message: string } | null };
 
   if (moveError) return { error: friendlyError(moveError.message) };
@@ -124,7 +129,7 @@ export async function archiveProject(projectId: string): Promise<{ error?: strin
   const { error } = (await supabase
     .from('projects')
     .update({ is_archived: true } as Partial<Project>)
-    .eq('id', projectId)
+    .eq('id', parsed.data.projectId)
     .eq('user_id', user.id)) as { error: { message: string } | null };
 
   if (error) return { error: friendlyError(error.message) };
@@ -132,6 +137,9 @@ export async function archiveProject(projectId: string): Promise<{ error?: strin
 }
 
 export async function setDefaultProject(projectId: string): Promise<{ error?: string }> {
+  const parsed = projectIdSchema.safeParse({ projectId });
+  if (!parsed.success) return { error: 'Invalid project ID' };
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -143,7 +151,7 @@ export async function setDefaultProject(projectId: string): Promise<{ error?: st
   const { data: project } = (await supabase
     .from('projects')
     .select('is_archived')
-    .eq('id', projectId)
+    .eq('id', parsed.data.projectId)
     .eq('user_id', user.id)
     .single()) as { data: Pick<Project, 'is_archived'> | null };
 
@@ -163,7 +171,7 @@ export async function setDefaultProject(projectId: string): Promise<{ error?: st
   const { error } = (await supabase
     .from('projects')
     .update({ is_default: true } as Partial<Project>)
-    .eq('id', projectId)
+    .eq('id', parsed.data.projectId)
     .eq('user_id', user.id)) as { error: { message: string } | null };
 
   if (error) return { error: friendlyError(error.message) };
@@ -171,6 +179,9 @@ export async function setDefaultProject(projectId: string): Promise<{ error?: st
 }
 
 export async function deleteProject(projectId: string): Promise<{ error?: string }> {
+  const parsed = projectIdSchema.safeParse({ projectId });
+  if (!parsed.success) return { error: 'Invalid project ID' };
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -182,7 +193,7 @@ export async function deleteProject(projectId: string): Promise<{ error?: string
   const { data: project } = (await supabase
     .from('projects')
     .select('is_archived, is_default')
-    .eq('id', projectId)
+    .eq('id', parsed.data.projectId)
     .eq('user_id', user.id)
     .single()) as { data: Pick<Project, 'is_archived' | 'is_default'> | null };
 
@@ -193,7 +204,7 @@ export async function deleteProject(projectId: string): Promise<{ error?: string
   const { error } = (await supabase
     .from('projects')
     .delete()
-    .eq('id', projectId)
+    .eq('id', parsed.data.projectId)
     .eq('user_id', user.id)) as { error: { message: string } | null };
 
   if (error) return { error: friendlyError(error.message) };

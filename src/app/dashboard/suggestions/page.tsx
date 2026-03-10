@@ -50,7 +50,7 @@ export default async function SuggestionsPage() {
         <div className="text-center py-12">
           <p className="text-gray-500 dark:text-gray-400">No pending suggestions.</p>
           <p className="mt-1 text-sm text-gray-400 dark:text-gray-500">
-            Connect GitHub and scan a repo to find decisions in your merged PRs.
+            Use integrations or paste text to extract decisions automatically.
           </p>
         </div>
       )}

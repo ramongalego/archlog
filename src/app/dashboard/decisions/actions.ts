@@ -5,13 +5,16 @@ import { friendlyError } from '@/lib/supabase/errors';
 import { daysFromNow } from '@/lib/utils';
 import { canCreateDecision } from '@/lib/stripe/plans';
 import { triggerEmbeddingGeneration } from '@/lib/ai/embeddings';
-import type {
-  OutcomeStatus,
-  DecisionCategory,
-  ConfidenceLevel,
-  User,
-  Decision,
-} from '@/types/decisions';
+import {
+  createDecisionSchema,
+  updateDecisionSchema,
+  recordOutcomeSchema,
+  listDecisionsSchema,
+  decisionIdSchema,
+  parseFormData,
+  parseTiptapJson,
+} from '@/lib/validation';
+import type { User, Decision } from '@/types/decisions';
 
 export async function createDecision(formData: FormData): Promise<{ id?: string; error?: string }> {
   const supabase = await createClient();
@@ -20,6 +23,10 @@ export async function createDecision(formData: FormData): Promise<{ id?: string;
   } = await supabase.auth.getUser();
 
   if (!user) return { error: 'Unauthorized' };
+
+  const parsed = parseFormData(createDecisionSchema, formData);
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+  const { project_id, title, why, context, confidence, category, custom_category } = parsed.data;
 
   // Get user profile for plan limits and review days
   const { data: profile } = (await supabase
@@ -44,27 +51,20 @@ export async function createDecision(formData: FormData): Promise<{ id?: string;
     };
   }
 
-  const projectId = formData.get('project_id') as string;
-  const title = formData.get('title') as string;
-  const whyStr = formData.get('why') as string;
-  const context = formData.get('context') as string;
-  const confidence = formData.get('confidence') as ConfidenceLevel;
-  const category = formData.get('category') as DecisionCategory;
-  const customCategory = formData.get('custom_category') as string | null;
-
-  if (!title?.trim()) return { error: 'Title is required' };
+  const whyResult = parseTiptapJson(why);
+  if (whyResult.error) return { error: whyResult.error };
 
   const { data, error } = (await supabase
     .from('decisions')
     .insert({
-      project_id: projectId,
+      project_id,
       user_id: user.id,
-      title: title.trim(),
-      why: whyStr ? JSON.parse(whyStr) : null,
+      title,
+      why: whyResult.data,
       context: context || null,
-      confidence: confidence || 'medium',
-      category: category || 'product',
-      custom_category: category === 'other' ? customCategory : null,
+      confidence,
+      category,
+      custom_category: category === 'other' ? custom_category : null,
       outcome_due_date: daysFromNow(profile.default_review_days),
     } as Decision)
     .select('id')
@@ -80,9 +80,10 @@ export async function createDecision(formData: FormData): Promise<{ id?: string;
 
 export async function listDecisions(params: {
   projectId?: string;
-  category?: DecisionCategory;
-  outcomeStatus?: OutcomeStatus;
-  confidence?: ConfidenceLevel;
+  search?: string;
+  category?: string;
+  outcomeStatus?: string;
+  confidence?: string;
   dateFrom?: string;
   dateTo?: string;
   page?: number;
@@ -95,8 +96,20 @@ export async function listDecisions(params: {
 
   if (!user) return { decisions: [], total: 0 };
 
-  const page = params.page ?? 1;
-  const pageSize = params.pageSize ?? 20;
+  const parsed = listDecisionsSchema.safeParse(params);
+  if (!parsed.success) return { decisions: [], total: 0 };
+  const {
+    page,
+    pageSize,
+    projectId,
+    search,
+    category,
+    outcomeStatus,
+    confidence,
+    dateFrom,
+    dateTo,
+  } = parsed.data;
+
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
 
@@ -108,23 +121,27 @@ export async function listDecisions(params: {
     .order('created_at', { ascending: false })
     .range(from, to);
 
-  if (params.projectId) {
-    query = query.eq('project_id', params.projectId);
+  if (projectId) {
+    query = query.eq('project_id', projectId);
   }
-  if (params.category) {
-    query = query.eq('category', params.category);
+  if (search) {
+    const term = `%${search}%`;
+    query = query.or(`title.ilike.${term},context.ilike.${term}`);
   }
-  if (params.outcomeStatus) {
-    query = query.eq('outcome_status', params.outcomeStatus);
+  if (category) {
+    query = query.eq('category', category);
   }
-  if (params.confidence) {
-    query = query.eq('confidence', params.confidence);
+  if (outcomeStatus) {
+    query = query.eq('outcome_status', outcomeStatus);
   }
-  if (params.dateFrom) {
-    query = query.gte('created_at', params.dateFrom);
+  if (confidence) {
+    query = query.eq('confidence', confidence);
   }
-  if (params.dateTo) {
-    query = query.lte('created_at', params.dateTo);
+  if (dateFrom) {
+    query = query.gte('created_at', dateFrom);
+  }
+  if (dateTo) {
+    query = query.lte('created_at', dateTo);
   }
 
   const { data, count, error } = (await query) as {
@@ -145,20 +162,18 @@ export async function recordOutcome(formData: FormData): Promise<{ error?: strin
 
   if (!user) return { error: 'Unauthorized' };
 
-  const decisionId = formData.get('decision_id') as string;
-  const outcomeStatus = formData.get('outcome_status') as OutcomeStatus;
-  const outcomeNotes = formData.get('outcome_notes') as string;
-
-  if (!decisionId || !outcomeStatus) return { error: 'Missing required fields' };
+  const parsed = parseFormData(recordOutcomeSchema, formData);
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+  const { decision_id, outcome_status, outcome_notes } = parsed.data;
 
   const updateData: Record<string, unknown> = {
-    outcome_status: outcomeStatus,
-    outcome_notes: outcomeNotes || null,
+    outcome_status,
+    outcome_notes: outcome_notes || null,
     outcome_recorded_at: new Date().toISOString(),
   };
 
   // If "still playing out", reset the review cycle
-  if (outcomeStatus === 'still_playing_out') {
+  if (outcome_status === 'still_playing_out') {
     const { data: profile } = (await supabase
       .from('users')
       .select('default_review_days')
@@ -171,13 +186,13 @@ export async function recordOutcome(formData: FormData): Promise<{ error?: strin
   const { error } = (await supabase
     .from('decisions')
     .update(updateData as Partial<Decision>)
-    .eq('id', decisionId)
+    .eq('id', decision_id)
     .eq('user_id', user.id)) as { error: { message: string } | null };
 
   if (error) return { error: friendlyError(error.message) };
 
   // Regenerate embedding to include outcome context
-  triggerEmbeddingGeneration(decisionId).catch(() => {});
+  triggerEmbeddingGeneration(decision_id).catch(() => {});
 
   return {};
 }
@@ -190,28 +205,25 @@ export async function updateDecision(formData: FormData): Promise<{ id?: string;
 
   if (!user) return { error: 'Unauthorized' };
 
-  const id = formData.get('id') as string;
-  const projectId = formData.get('project_id') as string;
-  const title = formData.get('title') as string;
-  const whyStr = formData.get('why') as string;
-  const context = formData.get('context') as string;
-  const confidence = formData.get('confidence') as ConfidenceLevel;
-  const category = formData.get('category') as DecisionCategory;
-  const customCategory = formData.get('custom_category') as string | null;
+  const parsed = parseFormData(updateDecisionSchema, formData);
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+  const { id, project_id, title, why, context, confidence, category, custom_category } =
+    parsed.data;
 
-  if (!title?.trim()) return { error: 'Title is required' };
+  const whyResult = parseTiptapJson(why);
+  if (whyResult.error) return { error: whyResult.error };
 
   const updateData: Partial<Decision> = {
-    title: title.trim(),
-    why: whyStr ? JSON.parse(whyStr) : null,
+    title,
+    why: whyResult.data,
     context: context || null,
-    confidence: confidence || 'medium',
-    category: category || 'product',
-    custom_category: category === 'other' ? customCategory : null,
+    confidence,
+    category,
+    custom_category: category === 'other' ? custom_category : null,
   };
 
-  if (projectId) {
-    updateData.project_id = projectId;
+  if (project_id) {
+    updateData.project_id = project_id;
   }
 
   const { error } = (await supabase
@@ -229,6 +241,9 @@ export async function updateDecision(formData: FormData): Promise<{ id?: string;
 }
 
 export async function archiveDecision(id: string): Promise<{ error?: string }> {
+  const parsed = decisionIdSchema.safeParse({ id });
+  if (!parsed.success) return { error: 'Invalid decision ID' };
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -239,7 +254,7 @@ export async function archiveDecision(id: string): Promise<{ error?: string }> {
   const { error } = (await supabase
     .from('decisions')
     .update({ is_archived: true } as Partial<Decision>)
-    .eq('id', id)
+    .eq('id', parsed.data.id)
     .eq('user_id', user.id)) as { error: { message: string } | null };
 
   if (error) return { error: friendlyError(error.message) };
@@ -247,6 +262,9 @@ export async function archiveDecision(id: string): Promise<{ error?: string }> {
 }
 
 export async function restoreDecision(id: string): Promise<{ error?: string }> {
+  const parsed = decisionIdSchema.safeParse({ id });
+  if (!parsed.success) return { error: 'Invalid decision ID' };
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -257,7 +275,7 @@ export async function restoreDecision(id: string): Promise<{ error?: string }> {
   const { error } = (await supabase
     .from('decisions')
     .update({ is_archived: false } as Partial<Decision>)
-    .eq('id', id)
+    .eq('id', parsed.data.id)
     .eq('user_id', user.id)) as { error: { message: string } | null };
 
   if (error) return { error: friendlyError(error.message) };

@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { friendlyError } from '@/lib/supabase/errors';
+import { updateSettingsSchema } from '@/lib/validation';
 import type { User } from '@/types/decisions';
 
 export async function updateSettings(formData: FormData): Promise<{ error?: string }> {
@@ -12,21 +13,23 @@ export async function updateSettings(formData: FormData): Promise<{ error?: stri
 
   if (!user) return { error: 'Unauthorized' };
 
-  const displayName = formData.get('display_name') as string;
-  const defaultReviewDays = Number(formData.get('default_review_days'));
-  const digestOptedIn = formData.get('digest_opted_in') === 'on';
-  const timezone = formData.get('timezone') as string;
+  const raw = {
+    display_name: formData.get('display_name') as string,
+    default_review_days: Number(formData.get('default_review_days')),
+    digest_opted_in: formData.get('digest_opted_in') === 'on',
+    timezone: formData.get('timezone') as string,
+  };
 
-  if (![30, 60, 90].includes(defaultReviewDays)) {
-    return { error: 'Review period must be 30, 60, or 90 days' };
-  }
+  const parsed = updateSettingsSchema.safeParse(raw);
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+  const { display_name, default_review_days, digest_opted_in, timezone } = parsed.data;
 
   const { error } = (await supabase
     .from('users')
     .update({
-      display_name: displayName || null,
-      default_review_days: defaultReviewDays,
-      digest_opted_in: digestOptedIn,
+      display_name: display_name || null,
+      default_review_days,
+      digest_opted_in,
       timezone: timezone || 'UTC',
     } as Partial<User>)
     .eq('id', user.id)) as { error: { message: string } | null };

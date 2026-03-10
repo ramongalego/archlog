@@ -26,6 +26,7 @@ interface DecisionFormProps {
   action: (formData: FormData) => Promise<{ id?: string; error?: string }>;
   projectId: string;
   projects?: ProjectOption[];
+  redirectTo?: string;
   initialData?: {
     title: string;
     why: JSONContent | null;
@@ -38,7 +39,13 @@ interface DecisionFormProps {
 
 const DRAFT_KEY = 'archlog-draft';
 
-export function DecisionForm({ action, projectId, projects, initialData }: DecisionFormProps) {
+export function DecisionForm({
+  action,
+  projectId,
+  projects,
+  redirectTo,
+  initialData,
+}: DecisionFormProps) {
   const router = useRouter();
   const [title, setTitle] = useState(initialData?.title ?? '');
   const [why, setWhy] = useState<JSONContent | null>(initialData?.why ?? null);
@@ -150,9 +157,9 @@ export function DecisionForm({ action, projectId, projects, initialData }: Decis
       toast.error(result.error);
       setSubmitting(false);
     } else {
-      toast.success(initialData ? 'Decision updated.' : 'Decision logged.');
+      toast.success(initialData && !redirectTo ? 'Decision updated.' : 'Decision logged.');
       localStorage.removeItem(DRAFT_KEY);
-      router.push(`/dashboard/decisions/${result.id}`);
+      router.push(redirectTo ?? `/dashboard/decisions/${result.id}`);
     }
   }
 
@@ -296,7 +303,11 @@ export function DecisionForm({ action, projectId, projects, initialData }: Decis
 
       <div className="flex gap-3">
         <Button type="submit" disabled={submitting}>
-          {submitting ? 'Saving...' : initialData ? 'Update Decision' : 'Log Decision'}
+          {submitting
+            ? 'Saving...'
+            : initialData && !redirectTo
+              ? 'Update Decision'
+              : 'Log Decision'}
         </Button>
         <Button type="button" variant="secondary" onClick={() => router.back()}>
           Cancel

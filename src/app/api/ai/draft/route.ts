@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { generateDraftSuggestion } from '@/lib/ai/draft';
+import { aiDraftSchema } from '@/lib/validation';
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -13,18 +14,13 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const rawNote = body.raw_note;
-
-  if (!rawNote || typeof rawNote !== 'string' || rawNote.trim().length === 0) {
-    return NextResponse.json({ error: 'raw_note is required' }, { status: 400 });
-  }
-
-  if (rawNote.length > 5000) {
-    return NextResponse.json({ error: 'raw_note must be under 5000 characters' }, { status: 400 });
+  const parsed = aiDraftSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
   }
 
   try {
-    const suggestion = await generateDraftSuggestion(rawNote);
+    const suggestion = await generateDraftSuggestion(parsed.data.raw_note);
     return NextResponse.json({ suggestion });
   } catch {
     return NextResponse.json(

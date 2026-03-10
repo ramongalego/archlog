@@ -24,6 +24,7 @@ export default async function DecisionsPage({
   const params = await searchParams;
   const activeProjectId = await getActiveProjectId();
 
+  const search = typeof params.q === 'string' ? params.q : undefined;
   const category = typeof params.category === 'string' ? params.category : undefined;
   const outcomeStatus =
     typeof params.outcome_status === 'string' ? params.outcome_status : undefined;
@@ -37,6 +38,7 @@ export default async function DecisionsPage({
 
   const { decisions, total } = await listDecisions({
     projectId: activeProjectId ?? undefined,
+    search,
     category: category as DecisionCategory | undefined,
     outcomeStatus: outcomeStatus as OutcomeStatus | undefined,
     confidence: confidence as ConfidenceLevel | undefined,
@@ -50,6 +52,7 @@ export default async function DecisionsPage({
 
   function paginationHref(targetPage: number) {
     const p = new URLSearchParams();
+    if (search) p.set('q', search);
     if (category) p.set('category', category);
     if (outcomeStatus) p.set('outcome_status', outcomeStatus);
     if (confidence) p.set('confidence', confidence);
@@ -63,9 +66,14 @@ export default async function DecisionsPage({
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <PageHeader title="Decisions">
-        <Link href="/dashboard/decisions/new">
-          <Button>Log a Decision</Button>
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/dashboard/decisions/extract">
+            <Button variant="secondary">Extract from text</Button>
+          </Link>
+          <Link href="/dashboard/decisions/new">
+            <Button>Log a Decision</Button>
+          </Link>
+        </div>
       </PageHeader>
 
       <FilterBar />
@@ -106,13 +114,24 @@ export default async function DecisionsPage({
         </>
       ) : (
         <div className="rounded-xl border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-900 py-12 text-center">
-          <p className="text-gray-500 dark:text-gray-400">No decisions found.</p>
-          <p className="mt-1 text-sm text-gray-400 dark:text-gray-500">
-            Try adjusting your filters, or log a new decision.
-          </p>
-          <Link href="/dashboard/decisions/new" className="mt-4 inline-block">
-            <Button>Log your first decision</Button>
-          </Link>
+          {search || category || outcomeStatus || confidence || dateFrom || dateTo ? (
+            <>
+              <p className="text-gray-500 dark:text-gray-400">No decisions match your filters.</p>
+              <p className="mt-1 text-sm text-gray-400 dark:text-gray-500">
+                Try adjusting your search or filters.
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="text-gray-500 dark:text-gray-400">No decisions yet.</p>
+              <p className="mt-1 text-sm text-gray-400 dark:text-gray-500">
+                Log your first decision. It takes about two minutes.
+              </p>
+              <Link href="/dashboard/decisions/new" className="mt-4 inline-block">
+                <Button>Log your first decision</Button>
+              </Link>
+            </>
+          )}
         </div>
       )}
     </div>

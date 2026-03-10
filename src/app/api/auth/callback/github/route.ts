@@ -6,7 +6,9 @@ import { getGitHubUser } from '@/lib/github/client';
 export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get('code');
   if (!code) {
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/dashboard/integrations?error=no_code`);
+    return NextResponse.redirect(
+      `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/integrations?error=no_code`
+    );
   }
 
   const supabase = await createClient();
@@ -61,5 +63,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/dashboard/integrations?connected=true`);
+  return NextResponse.redirect(
+    `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/integrations?connected=true`
+  );
 }

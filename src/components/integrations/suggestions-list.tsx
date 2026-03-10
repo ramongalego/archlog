@@ -14,6 +14,11 @@ interface SuggestionsListProps {
   projectId: string;
 }
 
+const SOURCE_LABELS: Record<string, string> = {
+  github: 'GitHub PR',
+  text: 'Text extract',
+};
+
 const CONFIDENCE_STYLES: Record<string, string> = {
   high: 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400',
   medium: 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400',
@@ -43,6 +48,7 @@ export function SuggestionsList({ suggestions, projectId }: SuggestionsListProps
       from_suggestion: suggestion.id,
       title: suggestion.extracted_title,
       context: suggestion.extracted_reasoning,
+      category: suggestion.extracted_category ?? 'technical',
       project_id: projectId,
     });
     if (suggestion.extracted_alternatives) {
@@ -71,8 +77,19 @@ export function SuggestionsList({ suggestions, projectId }: SuggestionsListProps
                 {s.extracted_title}
               </h3>
               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                From PR #{s.pr_number}: {s.pr_title}
-                {s.pr_author && <> by <span className="font-medium">@{s.pr_author}</span></>}
+                {SOURCE_LABELS[s.source] ?? s.source}
+                {s.pr_number && s.pr_title && (
+                  <>
+                    {' '}
+                    &middot; PR #{s.pr_number}: {s.pr_title}
+                  </>
+                )}
+                {s.pr_author && (
+                  <>
+                    {' '}
+                    by <span className="font-medium">@{s.pr_author}</span>
+                  </>
+                )}
               </p>
             </div>
             <Badge className={CONFIDENCE_STYLES[s.confidence] ?? CONFIDENCE_STYLES.medium}>
@@ -86,19 +103,24 @@ export function SuggestionsList({ suggestions, projectId }: SuggestionsListProps
 
           {s.extracted_alternatives && (
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              <span className="font-medium">Alternatives considered:</span> {s.extracted_alternatives}
+              <span className="font-medium">Alternatives considered:</span>{' '}
+              {s.extracted_alternatives}
             </p>
           )}
 
           <div className="flex items-center justify-between pt-1">
-            <a
-              href={s.pr_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 underline"
-            >
-              View PR on GitHub
-            </a>
+            {s.pr_url ? (
+              <a
+                href={s.pr_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 underline"
+              >
+                View PR on GitHub
+              </a>
+            ) : (
+              <span />
+            )}
             <div className="flex gap-2">
               <Button
                 variant="ghost"
