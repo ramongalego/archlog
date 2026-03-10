@@ -77,11 +77,21 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-8">
+    <div className="mx-auto max-w-3xl space-y-6">
       <PageHeader title="Dashboard">
-        <Link href="/dashboard/decisions/new">
-          <Button>Log a Decision</Button>
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link href="/dashboard/decisions/new">
+            <Button>
+              <span className="mr-1">+</span> Log Decision
+            </Button>
+          </Link>
+          <Link
+            href="/dashboard/decisions/extract"
+            className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+          >
+            Extract from text
+          </Link>
+        </div>
       </PageHeader>
 
       {/* Suggested Decisions Banners */}

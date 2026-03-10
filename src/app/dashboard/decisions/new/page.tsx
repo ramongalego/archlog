@@ -74,8 +74,8 @@ export default async function NewDecisionPage({ searchParams }: Props) {
   const isFromSuggestion = !!fromSuggestion;
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      <PageHeader title={isFromSuggestion ? 'Review Suggested Decision' : 'Log a Decision'} />
+    <div className="mx-auto max-w-3xl space-y-6">
+      <PageHeader title={isFromSuggestion ? 'Review Suggested Decision' : 'Log Decision'} />
       {isFromSuggestion && (
         <p className="text-sm text-gray-500 dark:text-gray-400">
           Review and edit the details below before saving.

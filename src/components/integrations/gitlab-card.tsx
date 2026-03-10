@@ -9,18 +9,18 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { formatRelativeDate } from '@/lib/utils';
 
-interface GitHubRepo {
-  full_name: string;
+interface GitLabProject {
+  path_with_namespace: string;
   name: string;
-  private: boolean;
+  visibility: string;
   description: string | null;
 }
 
-interface GitHubCardProps {
+interface GitLabCardProps {
   connection: {
     id: string;
-    github_username: string;
-    selected_repo: string | null;
+    gitlab_username: string;
+    selected_project: string | null;
     last_scan_at: string | null;
     last_scan_count: number | null;
   } | null;
@@ -28,46 +28,46 @@ interface GitHubCardProps {
   pendingCount: number;
 }
 
-export function GitHubCard({ connection, projectId, pendingCount }: GitHubCardProps) {
+export function GitLabCard({ connection, projectId, pendingCount }: GitLabCardProps) {
   const router = useRouter();
-  const [repos, setRepos] = useState<GitHubRepo[]>([]);
-  const [loadingRepos, setLoadingRepos] = useState(false);
-  const [selectedRepo, setSelectedRepo] = useState(connection?.selected_repo ?? '');
+  const [projects, setProjects] = useState<GitLabProject[]>([]);
+  const [loadingProjects, setLoadingProjects] = useState(false);
+  const [selectedProject, setSelectedProject] = useState(connection?.selected_project ?? '');
   const [scanning, setScanning] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
 
-  // Fetch repos when connected
+  // Fetch projects when connected
   useEffect(() => {
     if (connection) {
-      setLoadingRepos(true);
-      fetch('/api/github/repos')
+      setLoadingProjects(true);
+      fetch('/api/gitlab/projects')
         .then((res) => res.json())
         .then((data) => {
-          if (data.repos) setRepos(data.repos);
+          if (data.projects) setProjects(data.projects);
         })
-        .catch(() => toast.error('Failed to load repositories'))
-        .finally(() => setLoadingRepos(false));
+        .catch(() => toast.error('Failed to load projects'))
+        .finally(() => setLoadingProjects(false));
     }
   }, [connection]);
 
-  async function handleSelectRepo(repo: string) {
-    setSelectedRepo(repo);
-    const res = await fetch('/api/github/select-repo', {
+  async function handleSelectProject(project: string) {
+    setSelectedProject(project);
+    const res = await fetch('/api/gitlab/select-project', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ repo }),
+      body: JSON.stringify({ project }),
     });
-    if (!res.ok) toast.error('Failed to select repo');
+    if (!res.ok) toast.error('Failed to select project');
   }
 
   async function handleScan() {
-    if (!selectedRepo) {
-      toast.warning('Select a repository first');
+    if (!selectedProject) {
+      toast.warning('Select a project first');
       return;
     }
     setScanning(true);
     try {
-      const res = await fetch('/api/github/scan', {
+      const res = await fetch('/api/gitlab/scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ project_id: projectId }),
@@ -75,12 +75,12 @@ export function GitHubCard({ connection, projectId, pendingCount }: GitHubCardPr
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       if (data.found === 0) {
-        toast.info('Nothing stood out from your recent PRs', {
-          description: 'Try again after more PRs are merged',
+        toast.info('Nothing stood out from your recent MRs', {
+          description: 'Try again after more MRs are merged',
         });
       } else {
         toast.success(
-          `${data.found} decision${data.found !== 1 ? 's' : ''} found from ${data.scanned} PR${data.scanned !== 1 ? 's' : ''}`
+          `${data.found} decision${data.found !== 1 ? 's' : ''} found from ${data.scanned} MR${data.scanned !== 1 ? 's' : ''}`
         );
       }
       router.refresh();
@@ -94,8 +94,8 @@ export function GitHubCard({ connection, projectId, pendingCount }: GitHubCardPr
   async function handleDisconnect() {
     setDisconnecting(true);
     try {
-      await fetch('/api/github/disconnect', { method: 'POST' });
-      toast.info('GitHub disconnected');
+      await fetch('/api/gitlab/disconnect', { method: 'POST' });
+      toast.info('GitLab disconnected');
       router.refresh();
     } catch {
       toast.error('Failed to disconnect');
@@ -108,19 +108,15 @@ export function GitHubCard({ connection, projectId, pendingCount }: GitHubCardPr
     <Card className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-900 dark:bg-white">
-            <svg
-              className="h-5 w-5 text-white dark:text-gray-900"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
-              <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#FC6D26]">
+            <svg className="h-5 w-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M23.955 13.587l-1.342-4.135-2.664-8.189a.455.455 0 00-.867 0L16.418 9.45H7.582L4.918 1.263a.455.455 0 00-.867 0L1.386 9.452.044 13.587a.924.924 0 00.331 1.023L12 23.054l11.625-8.443a.92.92 0 00.33-1.024" />
             </svg>
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">GitHub</h3>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">GitLab</h3>
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              Scan merged PRs for architectural decisions
+              Scan merged MRs for architectural decisions
             </p>
           </div>
         </div>
@@ -132,9 +128,9 @@ export function GitHubCard({ connection, projectId, pendingCount }: GitHubCardPr
       </div>
 
       {!connection ? (
-        <a href="/api/github/auth">
+        <a href="/api/gitlab/auth">
           <Button variant="secondary" size="sm">
-            Connect GitHub
+            Connect GitLab
           </Button>
         </a>
       ) : (
@@ -142,23 +138,23 @@ export function GitHubCard({ connection, projectId, pendingCount }: GitHubCardPr
           <p className="text-xs text-gray-500 dark:text-gray-400">
             Signed in as{' '}
             <span className="font-medium text-gray-700 dark:text-gray-300">
-              @{connection.github_username}
+              @{connection.gitlab_username}
             </span>
           </p>
 
-          {/* Repo selector */}
+          {/* Project selector */}
           <div>
             <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Repository
+              Project
             </label>
             <Dropdown
-              value={selectedRepo}
-              onChange={handleSelectRepo}
-              placeholder={loadingRepos ? 'Loading repos...' : 'Select a repository'}
-              disabled={loadingRepos}
-              options={repos.map((r) => ({
-                value: r.full_name,
-                label: `${r.full_name}${r.private ? ' (private)' : ''}`,
+              value={selectedProject}
+              onChange={handleSelectProject}
+              placeholder={loadingProjects ? 'Loading projects...' : 'Select a project'}
+              disabled={loadingProjects}
+              options={projects.map((p) => ({
+                value: p.path_with_namespace,
+                label: `${p.path_with_namespace}${p.visibility === 'private' ? ' (private)' : ''}`,
               }))}
             />
           </div>
@@ -169,7 +165,7 @@ export function GitHubCard({ connection, projectId, pendingCount }: GitHubCardPr
               variant="secondary"
               size="sm"
               onClick={handleScan}
-              disabled={scanning || !selectedRepo}
+              disabled={scanning || !selectedProject}
             >
               {scanning ? 'Scanning...' : 'Scan for decisions'}
             </Button>

@@ -28,11 +28,13 @@ export default async function ExtractPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <PageHeader title="Extract decisions from text" />
-      <p className="text-sm text-gray-500 dark:text-gray-400">
-        Paste meeting notes, Notion pages, documents, or any text. AI will find decisions in it for
-        you to review.
-      </p>
+      <div>
+        <PageHeader title="Extract decisions from text" />
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          Paste meeting notes, Notion pages, documents, or any text. AI will find decisions in it
+          for you to review.
+        </p>
+      </div>
       <ExtractForm projectId={projectId} />
     </div>
   );

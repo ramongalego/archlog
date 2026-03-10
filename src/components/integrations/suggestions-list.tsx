@@ -16,6 +16,7 @@ interface SuggestionsListProps {
 
 const SOURCE_LABELS: Record<string, string> = {
   github: 'GitHub PR',
+  gitlab: 'GitLab MR',
   text: 'Text extract',
 };
 
@@ -81,7 +82,7 @@ export function SuggestionsList({ suggestions, projectId }: SuggestionsListProps
                 {s.pr_number && s.pr_title && (
                   <>
                     {' '}
-                    &middot; PR #{s.pr_number}: {s.pr_title}
+                    &middot; {s.source === 'gitlab' ? 'MR' : 'PR'} #{s.pr_number}: {s.pr_title}
                   </>
                 )}
                 {s.pr_author && (
@@ -116,7 +117,7 @@ export function SuggestionsList({ suggestions, projectId }: SuggestionsListProps
                 rel="noopener noreferrer"
                 className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 underline"
               >
-                View PR on GitHub
+                {s.source === 'gitlab' ? 'View MR on GitLab' : 'View PR on GitHub'}
               </a>
             ) : (
               <span />

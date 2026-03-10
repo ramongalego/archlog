@@ -1,6 +1,6 @@
 export default function Loading() {
   return (
-    <div className="mx-auto max-w-2xl space-y-6 animate-pulse">
+    <div className="mx-auto max-w-3xl space-y-6 animate-pulse">
       {/* PageHeader */}
       <div>
         <div className="h-8 w-48 rounded bg-gray-200 dark:bg-gray-800" />

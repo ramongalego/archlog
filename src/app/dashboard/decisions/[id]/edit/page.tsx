@@ -43,7 +43,7 @@ export default async function EditDecisionPage({ params }: { params: Promise<{ i
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="mx-auto max-w-3xl space-y-6">
       <PageHeader title="Edit Decision" />
       <DecisionForm
         action={handleUpdate}

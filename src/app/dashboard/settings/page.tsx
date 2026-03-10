@@ -157,7 +157,7 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-xl space-y-6 animate-pulse">
+      <div className="mx-auto max-w-3xl space-y-6 animate-pulse">
         <div className="h-8 w-24 rounded bg-gray-200 dark:bg-gray-800" />
         <div className="rounded-xl border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-900 px-5 py-4 space-y-3">
           <div className="h-4 w-12 rounded bg-gray-200 dark:bg-gray-800" />
@@ -180,7 +180,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-xl space-y-6">
+    <div className="mx-auto max-w-3xl space-y-6">
       <PageHeader title="Settings" />
 
       <BillingSection tier={tier} />

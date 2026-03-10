@@ -23,7 +23,7 @@ export default async function AskPage() {
   const activeProjectId = await getActiveProjectId();
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="mx-auto max-w-3xl space-y-6">
       <div>
         <PageHeader title="Ask about your decisions" />
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">

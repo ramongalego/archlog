@@ -66,12 +66,17 @@ export default async function DecisionsPage({
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <PageHeader title="Decisions">
-        <div className="flex gap-2">
-          <Link href="/dashboard/decisions/extract">
-            <Button variant="secondary">Extract from text</Button>
-          </Link>
+        <div className="flex items-center gap-3">
           <Link href="/dashboard/decisions/new">
-            <Button>Log a Decision</Button>
+            <Button>
+              <span className="mr-1">+</span> Log Decision
+            </Button>
+          </Link>
+          <Link
+            href="/dashboard/decisions/extract"
+            className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+          >
+            Extract from text
           </Link>
         </div>
       </PageHeader>

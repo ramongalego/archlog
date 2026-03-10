@@ -7,6 +7,7 @@ export type Decision = Database['public']['Tables']['decisions']['Row'];
 export type DecisionEdit = Database['public']['Tables']['decision_edits']['Row'];
 export type Subscription = Database['public']['Tables']['subscriptions']['Row'];
 export type GitHubConnection = Database['public']['Tables']['github_connections']['Row'];
+export type GitLabConnection = Database['public']['Tables']['gitlab_connections']['Row'];
 export type SuggestedDecision = Database['public']['Tables']['suggested_decisions']['Row'];
 export type SuggestionStatus = Database['public']['Enums']['suggestion_status'];
 

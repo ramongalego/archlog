@@ -46,7 +46,7 @@ export default async function DecisionDetailPage({ params }: { params: Promise<{
     decision.outcome_status === 'pending' || decision.outcome_status === 'still_playing_out';
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="mx-auto max-w-3xl space-y-6">
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-gray-100">

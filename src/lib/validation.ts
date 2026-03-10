@@ -181,6 +181,16 @@ export const githubScanSchema = z.object({
   project_id: uuidSchema,
 });
 
+// --- GitLab schemas ---
+
+export const selectGitLabProjectSchema = z.object({
+  project: z.string().min(1, 'Select a project').max(200, 'Project path is too long'),
+});
+
+export const gitlabScanSchema = z.object({
+  project_id: uuidSchema,
+});
+
 // --- Helpers ---
 
 /** Parse FormData into a plain object, then validate with a Zod schema. */

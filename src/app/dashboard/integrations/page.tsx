@@ -3,8 +3,9 @@ import { redirect } from 'next/navigation';
 import { PageHeader } from '@/components/ui/page-header';
 import { Card } from '@/components/ui/card';
 import { GitHubCard } from '@/components/integrations/github-card';
+import { GitLabCard } from '@/components/integrations/gitlab-card';
 import { getActiveProjectId } from '@/lib/active-project';
-import type { GitHubConnection } from '@/types/decisions';
+import type { GitHubConnection, GitLabConnection } from '@/types/decisions';
 
 export default async function IntegrationsPage() {
   const supabase = await createClient();
@@ -17,7 +18,7 @@ export default async function IntegrationsPage() {
   const activeProjectId = await getActiveProjectId();
 
   // Get GitHub connection if it exists
-  const { data: connection } = (await supabase
+  const { data: githubConnection } = (await supabase
     .from('github_connections')
     .select('id, github_username, selected_repo, last_scan_at, last_scan_count')
     .eq('user_id', user.id)
@@ -28,13 +29,33 @@ export default async function IntegrationsPage() {
     > | null;
   };
 
-  // Count pending suggestions from GitHub only (not text or other sources)
-  const { count: pendingCount } = await supabase
+  // Get GitLab connection if it exists
+  const { data: gitlabConnection } = (await supabase
+    .from('gitlab_connections')
+    .select('id, gitlab_username, selected_project, last_scan_at, last_scan_count')
+    .eq('user_id', user.id)
+    .single()) as {
+    data: Pick<
+      GitLabConnection,
+      'id' | 'gitlab_username' | 'selected_project' | 'last_scan_at' | 'last_scan_count'
+    > | null;
+  };
+
+  // Count pending suggestions from GitHub only
+  const { count: githubPendingCount } = await supabase
     .from('suggested_decisions')
     .select('*', { count: 'exact', head: true })
     .eq('user_id', user.id)
     .eq('status', 'pending')
     .eq('source', 'github');
+
+  // Count pending suggestions from GitLab only
+  const { count: gitlabPendingCount } = await supabase
+    .from('suggested_decisions')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+    .eq('status', 'pending')
+    .eq('source', 'gitlab');
 
   // Fall back to default project if no active project
   let projectId = activeProjectId;
@@ -49,14 +70,20 @@ export default async function IntegrationsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-8">
+    <div className="mx-auto max-w-3xl space-y-6">
       <PageHeader title="Integrations" />
 
       <div className="grid gap-4">
         <GitHubCard
-          connection={connection}
+          connection={githubConnection}
           projectId={projectId}
-          pendingCount={pendingCount ?? 0}
+          pendingCount={githubPendingCount ?? 0}
+        />
+
+        <GitLabCard
+          connection={gitlabConnection}
+          projectId={projectId}
+          pendingCount={gitlabPendingCount ?? 0}
         />
 
         {/* Placeholder cards for future integrations */}

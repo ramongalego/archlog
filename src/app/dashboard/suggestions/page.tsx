@@ -41,7 +41,7 @@ export default async function SuggestionsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-8">
+    <div className="mx-auto max-w-3xl space-y-6">
       <PageHeader title="Suggested Decisions" />
 
       {suggestions && suggestions.length > 0 ? (
