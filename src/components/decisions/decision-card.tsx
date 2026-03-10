@@ -6,8 +6,7 @@ import {
   CATEGORY_LABELS,
   CONFIDENCE_COLORS,
   CONFIDENCE_LABELS,
-  OUTCOME_COLORS,
-  OUTCOME_LABELS,
+  getOutcomeDisplay,
   type DecisionCategory,
   type ConfidenceLevel,
   type OutcomeStatus,
@@ -19,6 +18,7 @@ export interface DecisionCardData {
   category: DecisionCategory;
   confidence: ConfidenceLevel;
   outcome_status: OutcomeStatus;
+  outcome_due_date: string;
   created_at: string;
   custom_category?: string | null;
 }
@@ -28,6 +28,8 @@ export function DecisionCard({ decision }: { decision: DecisionCardData }) {
     decision.category === 'other' && decision.custom_category
       ? decision.custom_category
       : CATEGORY_LABELS[decision.category];
+
+  const outcome = getOutcomeDisplay(decision.outcome_status, decision.outcome_due_date);
 
   return (
     <Link href={`/dashboard/decisions/${decision.id}`} className="block">
@@ -45,9 +47,7 @@ export function DecisionCard({ decision }: { decision: DecisionCardData }) {
           <Badge className={CONFIDENCE_COLORS[decision.confidence]}>
             {CONFIDENCE_LABELS[decision.confidence]}
           </Badge>
-          <Badge className={OUTCOME_COLORS[decision.outcome_status]}>
-            {OUTCOME_LABELS[decision.outcome_status]}
-          </Badge>
+          <Badge className={outcome.color}>{outcome.label}</Badge>
         </div>
       </Card>
     </Link>

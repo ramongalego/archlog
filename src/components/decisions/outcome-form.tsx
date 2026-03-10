@@ -8,7 +8,7 @@ import { Dropdown } from '@/components/ui/dropdown';
 import { recordOutcome } from '@/app/dashboard/decisions/actions';
 import { OUTCOME_LABELS, type OutcomeStatus } from '@/types/decisions';
 
-const OUTCOME_OPTIONS: OutcomeStatus[] = ['vindicated', 'reversed', 'still_playing_out', 'wrong'];
+const OUTCOME_OPTIONS: OutcomeStatus[] = ['vindicated', 'reversed', 'still_playing_out'];
 
 export function OutcomeForm({ decisionId }: { decisionId: string }) {
   const router = useRouter();

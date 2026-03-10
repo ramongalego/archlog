@@ -27,6 +27,7 @@ interface DecisionFormProps {
   projectId: string;
   projects?: ProjectOption[];
   redirectTo?: string;
+  defaultReviewDays?: number;
   initialData?: {
     title: string;
     why: JSONContent | null;
@@ -34,6 +35,7 @@ interface DecisionFormProps {
     confidence: ConfidenceLevel;
     category: DecisionCategory;
     custom_category: string;
+    review_period_days?: number;
   };
 }
 
@@ -44,6 +46,7 @@ export function DecisionForm({
   projectId,
   projects,
   redirectTo,
+  defaultReviewDays = 90,
   initialData,
 }: DecisionFormProps) {
   const router = useRouter();
@@ -56,6 +59,9 @@ export function DecisionForm({
   const [category, setCategory] = useState<DecisionCategory>(initialData?.category ?? 'product');
   const [customCategory, setCustomCategory] = useState(initialData?.custom_category ?? '');
   const [selectedProjectId, setSelectedProjectId] = useState(projectId);
+  const [reviewPeriodDays, setReviewPeriodDays] = useState(
+    String(initialData?.review_period_days ?? defaultReviewDays)
+  );
 
   const [rawNote, setRawNote] = useState('');
   const [draftSuggestion, setDraftSuggestion] = useState<DraftSuggestion | null>(null);
@@ -150,6 +156,7 @@ export function DecisionForm({
     formData.set('confidence', confidence);
     formData.set('category', category);
     if (category === 'other') formData.set('custom_category', customCategory);
+    formData.set('review_period_days', reviewPeriodDays);
 
     const result = await action(formData);
 
@@ -283,6 +290,28 @@ export function DecisionForm({
           />
         </div>
       )}
+
+      {/* Review period */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Review period
+        </label>
+        <Dropdown
+          value={reviewPeriodDays}
+          onChange={(val) => setReviewPeriodDays(val)}
+          options={[
+            { value: '30', label: '30 days' },
+            { value: '60', label: '60 days' },
+            { value: '90', label: '90 days' },
+            { value: '180', label: '180 days' },
+          ]}
+        />
+        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          {initialData?.review_period_days
+            ? 'How long before you get reminded to review this decision. Resets the review date from today.'
+            : 'How long before you get reminded to review this decision.'}
+        </p>
+      </div>
 
       {category === 'other' && (
         <div>

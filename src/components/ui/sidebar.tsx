@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
 import { ProjectSwitcher } from '@/components/projects/project-switcher';
@@ -25,6 +25,11 @@ const navItems = [
     icon: 'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z',
   },
   {
+    href: '/dashboard/analytics',
+    label: 'Analytics',
+    icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
+  },
+  {
     href: '/dashboard/projects',
     label: 'Projects',
     icon: 'M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z',
@@ -45,6 +50,48 @@ export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [overdueCount, setOverdueCount] = useState(0);
+
+  const [projectVersion, setProjectVersion] = useState(0);
+
+  useEffect(() => {
+    const handler = () => setProjectVersion((v) => v + 1);
+    window.addEventListener('project-changed', handler);
+    return () => window.removeEventListener('project-changed', handler);
+  }, []);
+
+  useEffect(() => {
+    async function fetchOverdue() {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Read active project from cookie
+      const activeProject = document.cookie
+        .split('; ')
+        .find((c) => c.startsWith('active_project='))
+        ?.split('=')[1] ?? null;
+
+      let query = supabase
+        .from('decisions')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('is_archived', false)
+        .in('outcome_status', ['pending', 'still_playing_out'])
+        .lte('outcome_due_date', new Date().toISOString());
+
+      if (activeProject) {
+        query = query.eq('project_id', activeProject);
+      }
+
+      const { count } = await query;
+      setOverdueCount(count ?? 0);
+    }
+
+    fetchOverdue();
+  }, [pathname, projectVersion]);
 
   async function handleSignOut() {
     const supabase = createClient();
@@ -93,6 +140,11 @@ export function Sidebar() {
                 />
               </svg>
               {item.label}
+              {item.href === '/dashboard/decisions' && overdueCount > 0 && (
+                <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-semibold text-white">
+                  {overdueCount}
+                </span>
+              )}
             </Link>
           );
         })}

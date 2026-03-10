@@ -89,10 +89,11 @@ export type Database = {
           confidence: 'low' | 'medium' | 'high';
           category: 'product' | 'pricing' | 'technical' | 'hiring' | 'marketing' | 'other';
           custom_category: string | null;
-          outcome_status: 'pending' | 'vindicated' | 'reversed' | 'still_playing_out' | 'wrong';
+          outcome_status: 'pending' | 'vindicated' | 'reversed' | 'still_playing_out';
           outcome_notes: string | null;
           outcome_recorded_at: string | null;
           outcome_due_date: string;
+          review_period_days: number;
           is_archived: boolean;
           embedding: string | null;
           embedding_updated_at: string | null;
@@ -109,10 +110,11 @@ export type Database = {
           confidence?: 'low' | 'medium' | 'high';
           category?: 'product' | 'pricing' | 'technical' | 'hiring' | 'marketing' | 'other';
           custom_category?: string | null;
-          outcome_status?: 'pending' | 'vindicated' | 'reversed' | 'still_playing_out' | 'wrong';
+          outcome_status?: 'pending' | 'vindicated' | 'reversed' | 'still_playing_out';
           outcome_notes?: string | null;
           outcome_recorded_at?: string | null;
           outcome_due_date: string;
+          review_period_days?: number;
           is_archived?: boolean;
           embedding?: string | null;
           embedding_updated_at?: string | null;
@@ -129,10 +131,11 @@ export type Database = {
           confidence?: 'low' | 'medium' | 'high';
           category?: 'product' | 'pricing' | 'technical' | 'hiring' | 'marketing' | 'other';
           custom_category?: string | null;
-          outcome_status?: 'pending' | 'vindicated' | 'reversed' | 'still_playing_out' | 'wrong';
+          outcome_status?: 'pending' | 'vindicated' | 'reversed' | 'still_playing_out';
           outcome_notes?: string | null;
           outcome_recorded_at?: string | null;
           outcome_due_date?: string;
+          review_period_days?: number;
           is_archived?: boolean;
           embedding?: string | null;
           embedding_updated_at?: string | null;
@@ -397,7 +400,7 @@ export type Database = {
     Enums: {
       confidence_level: 'low' | 'medium' | 'high';
       decision_category: 'product' | 'pricing' | 'technical' | 'hiring' | 'marketing' | 'other';
-      outcome_status: 'pending' | 'vindicated' | 'reversed' | 'still_playing_out' | 'wrong';
+      outcome_status: 'pending' | 'vindicated' | 'reversed' | 'still_playing_out';
       subscription_tier: 'free' | 'pro';
       suggestion_status: 'pending' | 'accepted' | 'dismissed';
     };

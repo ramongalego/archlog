@@ -214,10 +214,11 @@ export default function SettingsPage() {
                 { value: '30', label: '30 days' },
                 { value: '60', label: '60 days' },
                 { value: '90', label: '90 days' },
+                { value: '180', label: '180 days' },
               ]}
             />
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              How long before you get reminded to review a decision.
+              Sets the initial review date when logging a new decision. Can be changed per decision.
             </p>
           </div>
 

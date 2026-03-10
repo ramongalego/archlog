@@ -80,6 +80,7 @@ export function ProjectSwitcher() {
     setActiveId(id);
     setCookie('active_project', id);
     setOpen(false);
+    window.dispatchEvent(new Event('project-changed'));
     startTransition(() => {
       router.refresh();
     });

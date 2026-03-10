@@ -13,6 +13,7 @@ import {
   CATEGORY_LABELS,
   OUTCOME_LABELS,
   OUTCOME_COLORS,
+  getOutcomeDisplay,
   type Decision,
   type DecisionEdit,
 } from '@/types/decisions';
@@ -83,9 +84,10 @@ export default async function DecisionDetailPage({ params }: { params: Promise<{
             ? decision.custom_category
             : CATEGORY_LABELS[decision.category]}
         </Badge>
-        <Badge className={OUTCOME_COLORS[decision.outcome_status]}>
-          {OUTCOME_LABELS[decision.outcome_status]}
-        </Badge>
+        {(() => {
+          const outcome = getOutcomeDisplay(decision.outcome_status, decision.outcome_due_date);
+          return <Badge className={outcome.color}>{outcome.label}</Badge>;
+        })()}
       </div>
 
       {decision.context && (

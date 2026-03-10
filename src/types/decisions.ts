@@ -41,10 +41,9 @@ export const CATEGORY_LABELS: Record<DecisionCategory, string> = {
 
 export const OUTCOME_LABELS: Record<OutcomeStatus, string> = {
   pending: 'Pending',
-  vindicated: 'Vindicated',
+  vindicated: 'Validated',
   reversed: 'Reversed',
-  still_playing_out: 'Still Playing Out',
-  wrong: 'Wrong',
+  still_playing_out: 'Ongoing',
 };
 
 export const OUTCOME_COLORS: Record<OutcomeStatus, string> = {
@@ -52,7 +51,6 @@ export const OUTCOME_COLORS: Record<OutcomeStatus, string> = {
   vindicated: 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400',
   reversed: 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400',
   still_playing_out: 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400',
-  wrong: 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400',
 };
 
 export const CONFIDENCE_COLORS: Record<ConfidenceLevel, string> = {
@@ -60,6 +58,26 @@ export const CONFIDENCE_COLORS: Record<ConfidenceLevel, string> = {
   medium: 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400',
   high: 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400',
 };
+
+// Computed display helpers for outcome status
+export function getOutcomeDisplay(
+  outcomeStatus: OutcomeStatus,
+  outcomeDueDate: string
+): { label: string; color: string } {
+  if (
+    (outcomeStatus === 'pending' || outcomeStatus === 'still_playing_out') &&
+    new Date(outcomeDueDate) <= new Date()
+  ) {
+    return {
+      label: 'Overdue',
+      color: 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400',
+    };
+  }
+  return {
+    label: OUTCOME_LABELS[outcomeStatus],
+    color: OUTCOME_COLORS[outcomeStatus],
+  };
+}
 
 // AI draft suggestion shape
 export interface DraftSuggestion {

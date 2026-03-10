@@ -22,12 +22,18 @@ export const outcomeRemindersTask = schedules.task({
     const supabase = getSupabase();
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://archlog.app';
 
+    // Only email about decisions that became overdue in the last 24 hours
+    // (first day past due). Persistent nudges are handled by the weekly digest.
+    const now = new Date();
+    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
     const { data: dueDecisions } = (await supabase
       .from('decisions')
       .select('id, title, user_id, outcome_due_date')
-      .eq('outcome_status', 'pending')
+      .in('outcome_status', ['pending', 'still_playing_out'])
       .eq('is_archived', false)
-      .lte('outcome_due_date', new Date().toISOString())
+      .lte('outcome_due_date', now.toISOString())
+      .gte('outcome_due_date', oneDayAgo.toISOString())
       .order('outcome_due_date', { ascending: true })) as { data: Decision[] | null };
 
     if (!dueDecisions || dueDecisions.length === 0) {

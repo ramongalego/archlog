@@ -26,7 +26,16 @@ export async function createDecision(formData: FormData): Promise<{ id?: string;
 
   const parsed = parseFormData(createDecisionSchema, formData);
   if (!parsed.success) return { error: parsed.error.issues[0].message };
-  const { project_id, title, why, context, confidence, category, custom_category } = parsed.data;
+  const {
+    project_id,
+    title,
+    why,
+    context,
+    confidence,
+    category,
+    custom_category,
+    review_period_days,
+  } = parsed.data;
 
   // Get user profile for plan limits and review days
   const { data: profile } = (await supabase
@@ -65,7 +74,8 @@ export async function createDecision(formData: FormData): Promise<{ id?: string;
       confidence,
       category,
       custom_category: category === 'other' ? custom_category : null,
-      outcome_due_date: daysFromNow(profile.default_review_days),
+      review_period_days: review_period_days ?? profile.default_review_days,
+      outcome_due_date: daysFromNow(review_period_days ?? profile.default_review_days),
     } as Decision)
     .select('id')
     .single()) as { data: { id: string } | null; error: { message: string } | null };
@@ -172,15 +182,16 @@ export async function recordOutcome(formData: FormData): Promise<{ error?: strin
     outcome_recorded_at: new Date().toISOString(),
   };
 
-  // If "still playing out", reset the review cycle
+  // If "still playing out", reset the review cycle using the decision's own period
   if (outcome_status === 'still_playing_out') {
-    const { data: profile } = (await supabase
-      .from('users')
-      .select('default_review_days')
-      .eq('id', user.id)
-      .single()) as { data: Pick<User, 'default_review_days'> | null };
+    const { data: decision } = (await supabase
+      .from('decisions')
+      .select('review_period_days')
+      .eq('id', decision_id)
+      .eq('user_id', user.id)
+      .single()) as { data: Pick<Decision, 'review_period_days'> | null };
 
-    updateData.outcome_due_date = daysFromNow(profile?.default_review_days ?? 90);
+    updateData.outcome_due_date = daysFromNow(decision?.review_period_days ?? 90);
   }
 
   const { error } = (await supabase
@@ -207,8 +218,17 @@ export async function updateDecision(formData: FormData): Promise<{ id?: string;
 
   const parsed = parseFormData(updateDecisionSchema, formData);
   if (!parsed.success) return { error: parsed.error.issues[0].message };
-  const { id, project_id, title, why, context, confidence, category, custom_category } =
-    parsed.data;
+  const {
+    id,
+    project_id,
+    title,
+    why,
+    context,
+    confidence,
+    category,
+    custom_category,
+    review_period_days,
+  } = parsed.data;
 
   const whyResult = parseTiptapJson(why);
   if (whyResult.error) return { error: whyResult.error };
@@ -224,6 +244,11 @@ export async function updateDecision(formData: FormData): Promise<{ id?: string;
 
   if (project_id) {
     updateData.project_id = project_id;
+  }
+
+  if (review_period_days) {
+    updateData.review_period_days = review_period_days;
+    updateData.outcome_due_date = daysFromNow(review_period_days);
   }
 
   const { error } = (await supabase

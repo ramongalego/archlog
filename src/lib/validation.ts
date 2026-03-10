@@ -11,7 +11,7 @@ export const categorySchema = z.enum(
   { error: 'Please select a valid category' }
 );
 export const outcomeStatusSchema = z.enum(
-  ['pending', 'vindicated', 'reversed', 'still_playing_out', 'wrong'],
+  ['pending', 'vindicated', 'reversed', 'still_playing_out'],
   { error: 'Please select a valid outcome status' }
 );
 
@@ -69,6 +69,18 @@ export const createDecisionSchema = z.object({
   confidence: confidenceSchema.default('medium'),
   category: categorySchema.default('product'),
   custom_category: trimmedString(100, 'Custom category').optional().default(''),
+  review_period_days: z
+    .string()
+    .transform((v) => (v ? Number(v) : undefined))
+    .pipe(
+      z
+        .number()
+        .int()
+        .refine((v) => [30, 60, 90, 180].includes(v), {
+          message: 'Review period must be 30, 60, 90, or 180 days',
+        })
+        .optional()
+    ),
 });
 
 export const updateDecisionSchema = z.object({
@@ -80,6 +92,18 @@ export const updateDecisionSchema = z.object({
   confidence: confidenceSchema.default('medium'),
   category: categorySchema.default('product'),
   custom_category: trimmedString(100, 'Custom category').optional().default(''),
+  review_period_days: z
+    .string()
+    .transform((v) => (v ? Number(v) : undefined))
+    .pipe(
+      z
+        .number()
+        .int()
+        .refine((v) => [30, 60, 90, 180].includes(v), {
+          message: 'Review period must be 30, 60, 90, or 180 days',
+        })
+        .optional()
+    ),
 });
 
 export const recordOutcomeSchema = z.object({
@@ -132,8 +156,8 @@ export const updateSettingsSchema = z.object({
   default_review_days: z
     .number()
     .int()
-    .refine((v) => [30, 60, 90].includes(v), {
-      message: 'Review period must be 30, 60, or 90 days',
+    .refine((v) => [30, 60, 90, 180].includes(v), {
+      message: 'Review period must be 30, 60, 90, or 180 days',
     }),
   digest_opted_in: z.boolean(),
   timezone: z.string().max(100, 'Timezone is too long').default('UTC'),

@@ -56,6 +56,7 @@ export default async function EditDecisionPage({ params }: { params: Promise<{ i
           confidence: decision.confidence,
           category: decision.category,
           custom_category: decision.custom_category ?? '',
+          review_period_days: decision.review_period_days,
         }}
       />
     </div>

@@ -20,6 +20,14 @@ export default async function NewDecisionPage({ searchParams }: Props) {
 
   if (!user) redirect('/login');
 
+  // Get user's default review period
+  const { data: profile } = (await supabase
+    .from('users')
+    .select('default_review_days')
+    .eq('id', user.id)
+    .single()) as { data: { default_review_days: number } | null };
+  const defaultReviewDays = profile?.default_review_days ?? 90;
+
   // Use active project from cookie, fall back to default project
   let projectId = await getActiveProjectId();
 
@@ -58,6 +66,7 @@ export default async function NewDecisionPage({ searchParams }: Props) {
         confidence: 'medium' as const,
         category: suggestedCategory,
         custom_category: '',
+        review_period_days: defaultReviewDays,
       }
     : undefined;
 
@@ -84,6 +93,7 @@ export default async function NewDecisionPage({ searchParams }: Props) {
       <DecisionForm
         action={isFromSuggestion ? createFromSuggestion : createDecision}
         projectId={projectId}
+        defaultReviewDays={defaultReviewDays}
         initialData={prefilled}
         redirectTo={isFromSuggestion ? '/dashboard/suggestions' : undefined}
       />

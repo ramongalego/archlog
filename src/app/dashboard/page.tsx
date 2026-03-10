@@ -27,7 +27,7 @@ export default async function DashboardPage() {
   // Recent decisions - scoped to active project
   let recentQuery = supabase
     .from('decisions')
-    .select('id, title, category, confidence, outcome_status, created_at')
+    .select('id, title, category, confidence, outcome_status, outcome_due_date, created_at')
     .eq('user_id', user.id)
     .eq('is_archived', false)
     .order('created_at', { ascending: false })
