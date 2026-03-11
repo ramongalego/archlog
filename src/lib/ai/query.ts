@@ -17,7 +17,10 @@ interface MatchedDecision {
 
 export type QueryEvent =
   | { type: 'chunk'; content: string }
-  | { type: 'citations'; decisions: { id: string; title: string; created_at: string }[] }
+  | {
+      type: 'citations';
+      decisions: { id: string; title: string; created_at: string; project_name?: string }[];
+    }
   | { type: 'done' };
 
 function extractTextFromTiptap(doc: unknown): string {
@@ -113,6 +116,33 @@ export async function* queryDecisions(params: {
     decisions.map((d, i) => [i + 1, { id: d.id, title: d.title, created_at: d.created_at }])
   );
 
+  // For cross-project queries, look up project names for citations
+  let projectNamesById: Map<string, string> | null = null;
+  if (!params.projectId) {
+    const decisionIds = decisions.map((d) => d.id);
+    const { data: decisionRows } = await supabase
+      .from('decisions')
+      .select('id, project_id')
+      .in('id', decisionIds);
+
+    if (decisionRows && decisionRows.length > 0) {
+      const projectIds = [...new Set(decisionRows.map((d) => d.project_id))];
+      const { data: projects } = await supabase
+        .from('projects')
+        .select('id, name')
+        .in('id', projectIds);
+
+      if (projects) {
+        const projectMap = new Map(projects.map((p) => [p.id, p.name]));
+        projectNamesById = new Map();
+        for (const dr of decisionRows) {
+          const name = projectMap.get(dr.project_id);
+          if (name) projectNamesById.set(dr.id, name);
+        }
+      }
+    }
+  }
+
   const anthropic = new Anthropic();
 
   const stream = anthropic.messages.stream({
@@ -146,7 +176,12 @@ Question: ${params.question}`,
 
   // Parse REFS line to find which decisions were actually used
   const refsMatch = fullText.match(/REFS:\s*(.+)/i);
-  const citedDecisions: { id: string; title: string; created_at: string }[] = [];
+  const citedDecisions: {
+    id: string;
+    title: string;
+    created_at: string;
+    project_name?: string;
+  }[] = [];
 
   if (refsMatch && refsMatch[1].trim().toLowerCase() !== 'none') {
     const indices = refsMatch[1]
@@ -156,7 +191,12 @@ Question: ${params.question}`,
 
     for (const idx of indices) {
       const d = decisionsByIndex.get(idx);
-      if (d) citedDecisions.push(d);
+      if (d) {
+        citedDecisions.push({
+          ...d,
+          project_name: projectNamesById?.get(d.id),
+        });
+      }
     }
   }
 

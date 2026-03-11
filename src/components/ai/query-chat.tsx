@@ -10,19 +10,23 @@ interface Citation {
   id: string;
   title: string;
   created_at: string;
+  project_name?: string;
 }
 
 export function QueryChat({
   isPro,
   activeProjectId,
+  activeProjectName,
 }: {
   isPro: boolean;
   activeProjectId?: string | null;
+  activeProjectName?: string;
 }) {
   const [question, setQuestion] = useState('');
   const [response, setResponse] = useState('');
   const [citations, setCitations] = useState<Citation[]>([]);
   const [loading, setLoading] = useState(false);
+  const [scope, setScope] = useState<'project' | 'all'>('project');
   const abortRef = useRef<AbortController | null>(null);
 
   if (!isPro) {
@@ -55,7 +59,7 @@ export function QueryChat({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           question: question.trim(),
-          project_id: activeProjectId ?? undefined,
+          project_id: scope === 'project' ? (activeProjectId ?? undefined) : undefined,
         }),
         signal: abortRef.current.signal,
       });
@@ -117,25 +121,64 @@ export function QueryChat({
         toast.error('Failed to connect. Please try again.');
       }
     } finally {
+      // Always strip REFS line (including "REFS: none") from displayed response
+      setResponse((prev) => prev.replace(/\n?REFS:\s*.+$/i, '').trimEnd());
       setLoading(false);
     }
   }
 
+  const projectLabel = activeProjectName || 'This project';
+
   return (
     <div className="space-y-4">
-      <form onSubmit={handleSubmit} className="flex gap-2">
-        <input
-          type="text"
-          value={question}
-          onChange={(e) => setQuestion(e.target.value)}
-          placeholder="Ask about your decisions... e.g. 'Why did we choose React?'"
-          className="flex-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-gray-400 dark:focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-gray-100/10 transition-colors"
-          disabled={loading}
-        />
-        <Button type="submit" disabled={loading || !question.trim()}>
-          {loading ? 'Thinking...' : 'Ask'}
-        </Button>
-      </form>
+      <div className="space-y-2">
+        <form onSubmit={handleSubmit} className="flex gap-2">
+          <input
+            type="text"
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            placeholder="Ask about your decisions... e.g. 'Why did we choose React?'"
+            className="flex-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-gray-400 dark:focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-gray-100/10 transition-colors"
+            disabled={loading}
+          />
+          <Button type="submit" disabled={loading || !question.trim()}>
+            {loading ? 'Thinking...' : 'Ask'}
+          </Button>
+        </form>
+        <div className="flex items-center justify-between">
+          {isPro ? (
+            <div className="flex gap-1 rounded-lg bg-gray-100 dark:bg-gray-800 p-0.5">
+              <button
+                type="button"
+                onClick={() => setScope('project')}
+                className={`cursor-pointer rounded-md px-2.5 py-1 text-xs font-medium transition-all ${
+                  scope === 'project'
+                    ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                }`}
+              >
+                {projectLabel}
+              </button>
+              <button
+                type="button"
+                onClick={() => setScope('all')}
+                className={`cursor-pointer rounded-md px-2.5 py-1 text-xs font-medium transition-all ${
+                  scope === 'all'
+                    ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                }`}
+              >
+                All projects
+              </button>
+            </div>
+          ) : (
+            <span />
+          )}
+          <p className="text-xs text-gray-400 dark:text-gray-500">
+            {scope === 'project' ? `Searching in ${projectLabel}` : 'Searching across all projects'}
+          </p>
+        </div>
+      </div>
 
       {(response || loading) && (
         <Card>
@@ -169,6 +212,7 @@ export function QueryChat({
                       {c.title}
                     </Link>
                     <span className="ml-1 text-xs text-gray-400 dark:text-gray-500">
+                      {c.project_name && scope === 'all' ? `${c.project_name} · ` : ''}
                       {new Date(c.created_at).toLocaleDateString()}
                     </span>
                   </li>

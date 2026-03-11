@@ -25,6 +25,16 @@ export default async function AskPage() {
   const isPro = profile?.subscription_tier === 'pro';
   const activeProjectId = await getActiveProjectId();
 
+  let activeProjectName = 'This project';
+  if (activeProjectId) {
+    const { data: project } = await supabase
+      .from('projects')
+      .select('name')
+      .eq('id', activeProjectId)
+      .single();
+    if (project) activeProjectName = project.name;
+  }
+
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
@@ -35,7 +45,11 @@ export default async function AskPage() {
         </p>
       </div>
 
-      <QueryChat isPro={isPro} activeProjectId={activeProjectId} />
+      <QueryChat
+        isPro={isPro}
+        activeProjectId={activeProjectId}
+        activeProjectName={activeProjectName}
+      />
     </div>
   );
 }
