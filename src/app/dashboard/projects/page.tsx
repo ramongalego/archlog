@@ -1,8 +1,11 @@
+import type { Metadata } from 'next';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import type { Project } from '@/types/decisions';
 import { PageHeader } from '@/components/ui/page-header';
 import { ProjectActions } from './project-actions';
+
+export const metadata: Metadata = { title: 'Projects' };
 
 type ProjectWithCount = Pick<
   Project,

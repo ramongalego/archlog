@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { DecisionForm } from '@/components/decisions/decision-form';
@@ -6,6 +7,8 @@ import { createDecision } from '../actions';
 import { getActiveProjectId } from '@/lib/active-project';
 import { acceptSuggestion } from '@/app/dashboard/suggestions/actions';
 import type { DecisionCategory } from '@/types/decisions';
+
+export const metadata: Metadata = { title: 'Log Decision' };
 
 interface Props {
   searchParams: Promise<{ [key: string]: string | undefined }>;
@@ -59,7 +62,17 @@ export default async function NewDecisionPage({ searchParams }: Props) {
   const prefilled = fromSuggestion
     ? {
         title: params.title ?? '',
-        why: null,
+        why: params.why
+          ? {
+              type: 'doc' as const,
+              content: [
+                {
+                  type: 'paragraph' as const,
+                  content: [{ type: 'text' as const, text: params.why }],
+                },
+              ],
+            }
+          : null,
         context: [params.context, params.alternatives ? `Alternatives: ${params.alternatives}` : '']
           .filter(Boolean)
           .join('\n\n'),

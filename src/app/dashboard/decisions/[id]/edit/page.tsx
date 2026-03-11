@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { createClient } from '@/lib/supabase/server';
 import { redirect, notFound } from 'next/navigation';
 import { DecisionForm } from '@/components/decisions/decision-form';
@@ -6,6 +7,8 @@ import { updateDecision } from '../../actions';
 import { validateRouteId } from '@/lib/validation';
 import type { Decision, Project } from '@/types/decisions';
 import type { JSONContent } from '@tiptap/react';
+
+export const metadata: Metadata = { title: 'Edit Decision' };
 
 export default async function EditDecisionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: rawId } = await params;

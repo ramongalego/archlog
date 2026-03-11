@@ -1,12 +1,16 @@
+import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { createClient } from '@/lib/supabase/server';
 import { redirect, notFound } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+
+export const metadata: Metadata = { title: 'Decision' };
 import { Button } from '@/components/ui/button';
 import { TiptapReadOnly } from '@/components/decisions/tiptap-editor';
 import { OutcomeSection } from '@/components/decisions/outcome-section';
 import { ArchiveButton } from './archive-button';
+import { DeleteButton } from '@/components/decisions/delete-button';
 import {
   CONFIDENCE_LABELS,
   CATEGORY_LABELS,
@@ -51,15 +55,29 @@ export default async function DecisionDetailPage({ params }: { params: Promise<{
             {formatDate(decision.created_at)}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center">
           {!decision.is_archived && (
             <Link href={`/dashboard/decisions/${decision.id}/edit`}>
               <Button variant="secondary" size="sm">
-                Edit
+                <span className="flex items-center gap-1">
+                  <svg
+                    className="h-3 w-3"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M11 2l3 3L5 14H2v-3z" />
+                  </svg>
+                  Edit
+                </span>
               </Button>
             </Link>
           )}
           <ArchiveButton decisionId={decision.id} isArchived={decision.is_archived} />
+          {decision.is_archived && <DeleteButton decisionId={decision.id} variant="ghost" />}
         </div>
       </div>
 

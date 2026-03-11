@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 
 interface ConfirmModalProps {
@@ -45,8 +46,12 @@ export function ConfirmModal({
 
   if (!open) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+  return createPortal(
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center"
+      onClick={(e) => e.stopPropagation()}
+      onMouseDown={(e) => e.stopPropagation()}
+    >
       <div className="fixed inset-0 bg-black/20 dark:bg-black/40" onClick={onCancel} />
       <div className="relative w-full max-w-sm rounded-xl border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-950 px-6 py-5 shadow-lg">
         <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{title}</h3>
@@ -64,6 +69,7 @@ export function ConfirmModal({
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

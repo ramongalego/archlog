@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { listDecisions } from './actions';
@@ -5,6 +6,8 @@ import { DecisionsContent } from './decisions-content';
 import { getActiveProjectId } from '@/lib/active-project';
 import type { DecisionCategory, OutcomeStatus, ConfidenceLevel } from '@/types/decisions';
 import type { DecisionCardData } from '@/components/decisions/decision-card';
+
+export const metadata: Metadata = { title: 'Decisions' };
 
 export default async function DecisionsPage({
   searchParams,

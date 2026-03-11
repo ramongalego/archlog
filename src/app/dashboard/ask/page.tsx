@@ -1,9 +1,12 @@
+import type { Metadata } from 'next';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { QueryChat } from '@/components/ai/query-chat';
 import { PageHeader } from '@/components/ui/page-header';
 import { getActiveProjectId } from '@/lib/active-project';
 import type { User } from '@/types/decisions';
+
+export const metadata: Metadata = { title: 'Ask' };
 
 export default async function AskPage() {
   const supabase = await createClient();

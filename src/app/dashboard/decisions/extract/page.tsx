@@ -1,8 +1,11 @@
+import type { Metadata } from 'next';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { PageHeader } from '@/components/ui/page-header';
 import { ExtractForm } from '@/components/decisions/extract-form';
 import { getActiveProjectId } from '@/lib/active-project';
+
+export const metadata: Metadata = { title: 'Extract Decisions' };
 
 export default async function ExtractPage() {
   const supabase = await createClient();

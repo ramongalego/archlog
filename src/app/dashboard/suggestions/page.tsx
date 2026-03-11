@@ -1,9 +1,12 @@
+import type { Metadata } from 'next';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { PageHeader } from '@/components/ui/page-header';
 import { SuggestionsList } from '@/components/integrations/suggestions-list';
 import { getActiveProjectId } from '@/lib/active-project';
 import type { SuggestedDecision } from '@/types/decisions';
+
+export const metadata: Metadata = { title: 'Suggestions' };
 
 export default async function SuggestionsPage() {
   const supabase = await createClient();

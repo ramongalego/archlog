@@ -310,3 +310,35 @@ export async function restoreDecision(id: string): Promise<{ error?: string }> {
   if (error) return { error: friendlyError(error.message) };
   return {};
 }
+
+export async function deleteDecision(id: string): Promise<{ error?: string }> {
+  const parsed = decisionIdSchema.safeParse({ id });
+  if (!parsed.success) return { error: 'Invalid decision ID' };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: 'Unauthorized' };
+
+  // Only allow deleting archived decisions
+  const { data: decision } = (await supabase
+    .from('decisions')
+    .select('is_archived')
+    .eq('id', parsed.data.id)
+    .eq('user_id', user.id)
+    .single()) as { data: { is_archived: boolean } | null };
+
+  if (!decision) return { error: 'Decision not found' };
+  if (!decision.is_archived) return { error: 'Only archived decisions can be deleted' };
+
+  const { error } = (await supabase
+    .from('decisions')
+    .delete()
+    .eq('id', parsed.data.id)
+    .eq('user_id', user.id)) as { error: { message: string } | null };
+
+  if (error) return { error: friendlyError(error.message) };
+  return {};
+}

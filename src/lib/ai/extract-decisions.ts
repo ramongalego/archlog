@@ -8,7 +8,8 @@ const BATCH_SIZE = 10;
 
 export interface ExtractedDecision {
   title: string;
-  reasoning: string;
+  why: string;
+  context: string | null;
   alternatives: string | null;
   confidence: 'high' | 'medium' | 'low';
   category: 'product' | 'pricing' | 'technical' | 'hiring' | 'marketing' | 'other';
@@ -69,6 +70,13 @@ async function extractBatch(prs: GitHubPR[]): Promise<PRDecisionResult[]> {
 
 Here are ${prs.length} merged PRs. For each one, determine if a significant decision was made (e.g., choosing a technology, changing architecture, adding/removing a feature, migrating systems, changing a business rule).
 
+Rules:
+- Use past tense. This is a record of a decision that was made.
+- Don't use em dashes. Use plain dashes or commas instead.
+- Write like a person. Short sentences. No buzzwords.
+- Don't duplicate content between why and context. They are distinct fields.
+- Return null for a field if there's genuinely nothing to put there, rather than padding with weak content.
+
 ${prBlocks}
 
 Return ONLY a JSON array (no markdown, no explanation) with one object per PR, in the same order:
@@ -77,12 +85,17 @@ Return ONLY a JSON array (no markdown, no explanation) with one object per PR, i
     "pr_number": 123,
     "is_decision": true or false,
     "title": "A clear one-line statement of what was decided (past tense, max 100 chars)" or null,
-    "reasoning": "A clean 2-4 sentence summary of WHY this decision was made. Use past tense." or null,
+    "why": "The reasoning and rationale - why was this the right call? What logic led to this choice? (2-4 sentences)" or null,
+    "context": "The background situation - what problem existed? What constraints or circumstances made this decision necessary? (2-4 sentences)" or null,
     "alternatives": "What alternatives were considered" or null,
     "confidence": "high" | "medium" | "low" or null,
     "category": "product" | "pricing" | "technical" | "hiring" | "marketing" | "other" or null
   }
 ]
+
+For PRs specifically:
+- context usually lives in the opening paragraph - "We were seeing X problem, the current approach wasn't working because Y"
+- why usually lives in the rationale section - "We chose this approach because Z, it gave us A and B"
 
 Set is_decision to false (and all other fields to null) for routine changes, minor fixes, and implementation details.
 
@@ -108,7 +121,8 @@ category is the best-fit category:
     pr_number: number;
     is_decision: boolean;
     title: string | null;
-    reasoning: string | null;
+    why: string | null;
+    context: string | null;
     alternatives: string | null;
     confidence: 'high' | 'medium' | 'low' | null;
     category: 'product' | 'pricing' | 'technical' | 'hiring' | 'marketing' | 'other' | null;
@@ -123,7 +137,8 @@ category is the best-fit category:
       item.is_decision && item.title
         ? {
             title: item.title,
-            reasoning: item.reasoning ?? '',
+            why: item.why ?? '',
+            context: item.context ?? null,
             alternatives: item.alternatives,
             confidence: item.confidence ?? 'medium',
             category: item.category ?? 'technical',

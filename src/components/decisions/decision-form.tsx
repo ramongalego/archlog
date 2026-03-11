@@ -341,7 +341,14 @@ export function DecisionForm({
               ? 'Update Decision'
               : 'Log Decision'}
         </Button>
-        <Button type="button" variant="secondary" onClick={() => router.back()}>
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={() => {
+            localStorage.removeItem(DRAFT_KEY);
+            router.back();
+          }}
+        >
           Cancel
         </Button>
       </div>

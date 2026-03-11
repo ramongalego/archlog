@@ -15,7 +15,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'ArchLog - Decision Memory for Founders',
+  title: {
+    template: '%s · ArchLog',
+    default: 'ArchLog',
+  },
   description:
     'Log decisions as they happen. Track outcomes over time. Search your history with AI.',
 };

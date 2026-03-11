@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { RestoreButton } from './restore-button';
+import { DeleteButton } from './delete-button';
 import { formatRelativeDate } from '@/lib/utils';
 import {
   CATEGORY_LABELS,
@@ -24,7 +25,13 @@ export interface DecisionCardData {
   is_archived?: boolean;
 }
 
-export function DecisionCard({ decision }: { decision: DecisionCardData }) {
+export function DecisionCard({
+  decision,
+  onAction,
+}: {
+  decision: DecisionCardData;
+  onAction?: () => void;
+}) {
   const categoryLabel =
     decision.category === 'other' && decision.custom_category
       ? decision.custom_category
@@ -49,29 +56,40 @@ export function DecisionCard({ decision }: { decision: DecisionCardData }) {
               </Badge>
             )}
           </div>
-          <div className="flex items-center gap-2 shrink-0 ml-4">
-            {archived && <RestoreButton decisionId={decision.id} />}
-            <span className="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap">
-              {formatRelativeDate(decision.created_at)}
+          <span className="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap shrink-0 ml-4">
+            {formatRelativeDate(decision.created_at)}
+          </span>
+        </div>
+        <div className="mt-1.5 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Badge className={outcome.color}>{outcome.label}</Badge>
+            <span className="text-xs text-gray-400 dark:text-gray-500">
+              {categoryLabel} &middot; {CONFIDENCE_LABELS[decision.confidence]} confidence
             </span>
           </div>
-        </div>
-        <div className="mt-1.5 flex items-center gap-2">
-          <Badge className={outcome.color}>{outcome.label}</Badge>
-          <span className="text-xs text-gray-400 dark:text-gray-500">
-            {categoryLabel} &middot; {CONFIDENCE_LABELS[decision.confidence]} confidence
-          </span>
+          {archived && (
+            <div className="flex items-center gap-3">
+              <RestoreButton decisionId={decision.id} onSuccess={onAction} />
+              <DeleteButton decisionId={decision.id} onSuccess={onAction} />
+            </div>
+          )}
         </div>
       </Card>
     </Link>
   );
 }
 
-export function DecisionList({ decisions }: { decisions: DecisionCardData[] }) {
+export function DecisionList({
+  decisions,
+  onAction,
+}: {
+  decisions: DecisionCardData[];
+  onAction?: () => void;
+}) {
   return (
     <div className="space-y-3">
       {decisions.map((d) => (
-        <DecisionCard key={d.id} decision={d} />
+        <DecisionCard key={d.id} decision={d} onAction={onAction} />
       ))}
     </div>
   );

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { PageHeader } from '@/components/ui/page-header';
@@ -12,6 +13,8 @@ import {
   type DecisionCategory,
   type OutcomeStatus,
 } from '@/types/decisions';
+
+export const metadata: Metadata = { title: 'Analytics' };
 
 interface AnalyticsDecision {
   confidence: ConfidenceLevel;
@@ -238,7 +241,7 @@ export default async function AnalyticsPage() {
               Confidence Calibration
             </h2>
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
-              When you say high confidence, are you actually right more often?
+              When you have high confidence, are you actually right more often?
             </p>
 
             {!calibrationReady ? (

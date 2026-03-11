@@ -155,7 +155,7 @@ export function DecisionsContent({
         </div>
       ) : decisions.length > 0 ? (
         <>
-          <DecisionList decisions={decisions} />
+          <DecisionList decisions={decisions} onAction={() => doFetch(filtersRef.current)} />
 
           {totalPages > 1 && (
             <div className="flex items-center justify-between pt-2">

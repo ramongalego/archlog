@@ -48,10 +48,13 @@ export function SuggestionsList({ suggestions, projectId }: SuggestionsListProps
     const params = new URLSearchParams({
       from_suggestion: suggestion.id,
       title: suggestion.extracted_title,
-      context: suggestion.extracted_reasoning,
+      why: suggestion.extracted_reasoning,
       category: suggestion.extracted_category ?? 'technical',
       project_id: projectId,
     });
+    if (suggestion.extracted_context) {
+      params.set('context', suggestion.extracted_context);
+    }
     if (suggestion.extracted_alternatives) {
       params.set('alternatives', suggestion.extracted_alternatives);
     }
@@ -101,6 +104,12 @@ export function SuggestionsList({ suggestions, projectId }: SuggestionsListProps
           <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
             {s.extracted_reasoning}
           </p>
+
+          {s.extracted_context && (
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              <span className="font-medium">Context:</span> {s.extracted_context}
+            </p>
+          )}
 
           {s.extracted_alternatives && (
             <p className="text-sm text-gray-500 dark:text-gray-400">

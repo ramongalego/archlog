@@ -7,7 +7,8 @@ const anthropic = new Anthropic();
 
 export interface ExtractedDecision {
   title: string;
-  reasoning: string;
+  why: string;
+  context: string | null;
   alternatives: string | null;
   confidence: 'high' | 'medium' | 'low';
   category: 'product' | 'pricing' | 'technical' | 'hiring' | 'marketing' | 'other';
@@ -34,6 +35,13 @@ Read the following text carefully and identify any significant decisions that we
 
 Ignore routine items, minor fixes, and implementation details that don't reflect a deliberate choice.
 
+Rules:
+- Use past tense. This is a record of a decision that was made.
+- Don't use em dashes. Use plain dashes or commas instead.
+- Write like a person. Short sentences. No buzzwords.
+- Don't duplicate content between why and context. They are distinct fields.
+- Return null for a field if there's genuinely nothing to put there, rather than padding with weak content.
+
 Text:
 """
 ${input}
@@ -42,11 +50,16 @@ ${input}
 Return ONLY a JSON array (no markdown, no explanation). Each element should be:
 {
   "title": "A clear one-line statement of what was decided (past tense, max 100 chars)",
-  "reasoning": "A clean, well-written 2-4 sentence summary of WHY this decision was made. Synthesize the context and reasoning into clear, concise prose. Use past tense.",
+  "why": "The reasoning and rationale - why was this the right call? What logic led to this choice? (2-4 sentences, or null if unclear)",
+  "context": "The background situation - what problem existed? What constraints or circumstances made this decision necessary? (2-4 sentences, or null if unclear)",
   "alternatives": "What alternatives were implicitly or explicitly considered, or null if unclear",
   "confidence": "high" | "medium" | "low",
   "category": "product" | "pricing" | "technical" | "hiring" | "marketing" | "other"
 }
+
+For GitHub PRs and merge requests specifically:
+- context usually lives in the opening paragraph - "We were seeing X problem, the current approach wasn't working because Y"
+- why usually lives in the rationale section - "We chose this approach because Z, it gave us A and B"
 
 confidence means how confident YOU are that this is a real decision:
 - high: clearly a deliberate choice between alternatives
@@ -107,7 +120,8 @@ export async function storeSuggestions(
     pr_author: params.metadata?.prAuthor ?? null,
     pr_body: params.metadata?.prBody ?? null,
     extracted_title: d.title,
-    extracted_reasoning: d.reasoning,
+    extracted_reasoning: d.why,
+    extracted_context: d.context ?? null,
     extracted_alternatives: d.alternatives,
     extracted_category: d.category ?? 'technical',
     confidence: d.confidence,

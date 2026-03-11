@@ -50,14 +50,37 @@ export function ArchiveButton({
 
   return (
     <>
-      <Button variant="ghost" size="sm" onClick={handleClick} disabled={loading}>
-        {loading
-          ? isArchived
-            ? 'Restoring...'
-            : 'Archiving...'
-          : isArchived
-            ? 'Restore'
-            : 'Archive'}
+      <Button
+        variant={isArchived ? 'secondary' : 'ghost'}
+        size="sm"
+        onClick={handleClick}
+        disabled={loading}
+      >
+        {loading ? (
+          isArchived ? (
+            'Restoring...'
+          ) : (
+            'Archiving...'
+          )
+        ) : isArchived ? (
+          <span className="flex items-center gap-1">
+            <svg
+              className="h-3 w-3"
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M2 8a6 6 0 1 1 1.5 4" />
+              <polyline points="2 4 2 8 6 8" />
+            </svg>
+            Restore
+          </span>
+        ) : (
+          'Archive'
+        )}
       </Button>
       <ConfirmModal
         open={showConfirm}

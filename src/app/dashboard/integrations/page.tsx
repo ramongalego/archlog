@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { PageHeader } from '@/components/ui/page-header';
@@ -6,6 +7,8 @@ import { GitHubCard } from '@/components/integrations/github-card';
 import { GitLabCard } from '@/components/integrations/gitlab-card';
 import { getActiveProjectId } from '@/lib/active-project';
 import type { GitHubConnection, GitLabConnection } from '@/types/decisions';
+
+export const metadata: Metadata = { title: 'Integrations' };
 
 export default async function IntegrationsPage() {
   const supabase = await createClient();

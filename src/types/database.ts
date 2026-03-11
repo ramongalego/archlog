@@ -323,6 +323,7 @@ export type Database = {
           pr_body: string | null;
           extracted_title: string;
           extracted_reasoning: string;
+          extracted_context: string | null;
           extracted_alternatives: string | null;
           extracted_category: string;
           confidence: string;
@@ -343,6 +344,7 @@ export type Database = {
           pr_body?: string | null;
           extracted_title: string;
           extracted_reasoning: string;
+          extracted_context?: string | null;
           extracted_alternatives?: string | null;
           extracted_category?: string;
           confidence?: string;
@@ -363,6 +365,7 @@ export type Database = {
           pr_body?: string | null;
           extracted_title?: string;
           extracted_reasoning?: string;
+          extracted_context?: string | null;
           extracted_alternatives?: string | null;
           extracted_category?: string;
           confidence?: string;

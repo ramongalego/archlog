@@ -5,7 +5,13 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { restoreDecision } from '@/app/dashboard/decisions/actions';
 
-export function RestoreButton({ decisionId }: { decisionId: string }) {
+export function RestoreButton({
+  decisionId,
+  onSuccess,
+}: {
+  decisionId: string;
+  onSuccess?: () => void;
+}) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -17,12 +23,16 @@ export function RestoreButton({ decisionId }: { decisionId: string }) {
     const result = await restoreDecision(decisionId);
     if (result.error) {
       toast.error(result.error);
+      setLoading(false);
     } else {
       toast.success('Decision restored.');
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        setLoading(false);
+        router.refresh();
+      }
     }
-
-    setLoading(false);
-    router.refresh();
   }
 
   return (
@@ -30,9 +40,27 @@ export function RestoreButton({ decisionId }: { decisionId: string }) {
       type="button"
       onClick={handleRestore}
       disabled={loading}
-      className="text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 underline underline-offset-2 transition-colors"
+      className="text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
     >
-      {loading ? 'Restoring...' : 'Restore'}
+      {loading ? (
+        'Restoring...'
+      ) : (
+        <span className="flex items-center gap-1">
+          <svg
+            className="h-3 w-3"
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M2 8a6 6 0 1 1 1.5 4" />
+            <polyline points="2 4 2 8 6 8" />
+          </svg>
+          Restore
+        </span>
+      )}
     </button>
   );
 }
