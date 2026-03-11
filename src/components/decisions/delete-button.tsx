@@ -65,7 +65,7 @@ export function DeleteButton({
           type="button"
           onClick={handleClick}
           disabled={loading}
-          className="text-xs font-medium text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+          className="cursor-pointer text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
         >
           {loading ? (
             'Deleting...'

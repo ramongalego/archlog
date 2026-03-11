@@ -170,7 +170,7 @@ export function DecisionsContent({
                 <button
                   type="button"
                   onClick={() => handleFilterChange('page', filters.page - 1)}
-                  className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
+                  className="cursor-pointer text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
                 >
                   Previous
                 </button>
@@ -186,7 +186,7 @@ export function DecisionsContent({
                 <button
                   type="button"
                   onClick={() => handleFilterChange('page', filters.page + 1)}
-                  className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
+                  className="cursor-pointer text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
                 >
                   Next
                 </button>

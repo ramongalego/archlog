@@ -29,7 +29,7 @@ const SOURCE_CONFIG: Record<
     border: 'border-purple-200/80 dark:border-purple-800/50',
     bg: 'bg-purple-50/50 dark:bg-purple-900/10',
     text: 'text-purple-700 dark:text-purple-300',
-    dismiss: 'text-purple-400 hover:text-purple-600 dark:hover:text-purple-200',
+    dismiss: 'cursor-pointer text-purple-400 hover:text-purple-600 dark:hover:text-purple-200',
   },
   gitlab: {
     label: 'your GitLab MRs',
@@ -41,7 +41,7 @@ const SOURCE_CONFIG: Record<
     border: 'border-orange-200/80 dark:border-orange-800/50',
     bg: 'bg-orange-50/50 dark:bg-orange-900/10',
     text: 'text-orange-700 dark:text-orange-300',
-    dismiss: 'text-orange-400 hover:text-orange-600 dark:hover:text-orange-200',
+    dismiss: 'cursor-pointer text-orange-400 hover:text-orange-600 dark:hover:text-orange-200',
   },
   text: {
     label: 'your pasted text',
@@ -58,7 +58,7 @@ const SOURCE_CONFIG: Record<
     border: 'border-blue-200/80 dark:border-blue-800/50',
     bg: 'bg-blue-50/50 dark:bg-blue-900/10',
     text: 'text-blue-700 dark:text-blue-300',
-    dismiss: 'text-blue-400 hover:text-blue-600 dark:hover:text-blue-200',
+    dismiss: 'cursor-pointer text-blue-400 hover:text-blue-600 dark:hover:text-blue-200',
   },
 };
 
@@ -77,7 +77,7 @@ const DEFAULT_CONFIG = {
   border: 'border-gray-200/80 dark:border-gray-800/50',
   bg: 'bg-gray-50/50 dark:bg-gray-900/10',
   text: 'text-gray-700 dark:text-gray-300',
-  dismiss: 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200',
+  dismiss: 'cursor-pointer text-gray-400 hover:text-gray-600 dark:hover:text-gray-200',
 };
 
 export function SuggestionsBanner({ source, count }: SuggestionsBannerProps) {

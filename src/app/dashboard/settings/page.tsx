@@ -89,7 +89,7 @@ function TimezoneField({
         <button
           type="button"
           onClick={() => setEditing(true)}
-          className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 underline underline-offset-2 transition-colors"
+          className="cursor-pointer text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 underline underline-offset-2 transition-colors"
         >
           Change
         </button>
@@ -118,7 +118,7 @@ function TimezoneField({
               setEditing(false);
               setSearch('');
             }}
-            className={`flex w-full items-center px-3 py-1.5 text-left text-sm transition-colors ${
+            className={`cursor-pointer flex w-full items-center px-3 py-1.5 text-left text-sm transition-colors ${
               tz.value === timezone
                 ? 'bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium'
                 : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/60 hover:text-gray-900 dark:hover:text-gray-200'

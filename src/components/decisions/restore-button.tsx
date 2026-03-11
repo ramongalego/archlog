@@ -40,7 +40,7 @@ export function RestoreButton({
       type="button"
       onClick={handleRestore}
       disabled={loading}
-      className="text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+      className="cursor-pointer text-xs font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
     >
       {loading ? (
         'Restoring...'
