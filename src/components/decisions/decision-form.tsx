@@ -9,7 +9,7 @@ import { TiptapEditor } from './tiptap-editor';
 import { DraftPreview } from '@/components/ai/draft-preview';
 import { toast } from 'sonner';
 import {
-  CONFIDENCE_LABELS,
+  CONFIDENCE_DESCRIPTORS,
   CATEGORY_LABELS,
   type ConfidenceLevel,
   type DecisionCategory,
@@ -257,12 +257,15 @@ export function DecisionForm({
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Confidence
+            How confident were you?
           </label>
           <Dropdown
             value={confidence}
             onChange={(val) => setConfidence(val as ConfidenceLevel)}
-            options={Object.entries(CONFIDENCE_LABELS).map(([value, label]) => ({ value, label }))}
+            options={Object.entries(CONFIDENCE_DESCRIPTORS).map(([value, label]) => ({
+              value,
+              label,
+            }))}
           />
         </div>
         <div>

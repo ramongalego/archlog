@@ -97,7 +97,7 @@ export function SuggestionsBanner({ source, count }: SuggestionsBannerProps) {
           <span className="font-semibold">
             {count} decision{count !== 1 ? 's' : ''}
           </span>{' '}
-          found in {config.label} —{' '}
+          found in {config.label} -{' '}
           <Link href="/dashboard/suggestions" className="underline hover:opacity-80">
             review them
           </Link>

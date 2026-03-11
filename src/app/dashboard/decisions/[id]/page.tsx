@@ -9,7 +9,6 @@ import { OutcomeSection } from '@/components/decisions/outcome-section';
 import { ArchiveButton } from './archive-button';
 import {
   CONFIDENCE_LABELS,
-  CONFIDENCE_COLORS,
   CATEGORY_LABELS,
   getOutcomeDisplay,
   type Decision,
@@ -70,19 +69,17 @@ export default async function DecisionDetailPage({ params }: { params: Promise<{
         </div>
       )}
 
-      <div className="flex gap-2">
-        <Badge className={CONFIDENCE_COLORS[decision.confidence]}>
-          {CONFIDENCE_LABELS[decision.confidence]}
-        </Badge>
-        <Badge className="bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
-          {decision.category === 'other' && decision.custom_category
-            ? decision.custom_category
-            : CATEGORY_LABELS[decision.category]}
-        </Badge>
+      <div className="flex items-center gap-2">
         {(() => {
           const outcome = getOutcomeDisplay(decision.outcome_status, decision.outcome_due_date);
           return <Badge className={outcome.color}>{outcome.label}</Badge>;
         })()}
+        <span className="text-xs text-gray-400 dark:text-gray-500">
+          {decision.category === 'other' && decision.custom_category
+            ? decision.custom_category
+            : CATEGORY_LABELS[decision.category]}{' '}
+          &middot; {CONFIDENCE_LABELS[decision.confidence]} confidence
+        </span>
       </div>
 
       {decision.context && (

@@ -13,15 +13,20 @@ const OUTCOME_OPTIONS: OutcomeStatus[] = ['vindicated', 'reversed', 'still_playi
 export function OutcomeForm({
   decisionId,
   onCancel,
+  onSaved,
+  initialStatus,
+  initialNotes,
 }: {
   decisionId: string;
   onCancel?: () => void;
+  onSaved?: () => void;
+  initialStatus?: OutcomeStatus;
+  initialNotes?: string;
 }) {
   const router = useRouter();
-  const [status, setStatus] = useState<OutcomeStatus>('vindicated');
-  const [notes, setNotes] = useState('');
+  const [status, setStatus] = useState<OutcomeStatus>(initialStatus ?? 'vindicated');
+  const [notes, setNotes] = useState(initialNotes ?? '');
   const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -36,17 +41,13 @@ export function OutcomeForm({
 
     if (result.error) {
       toast.error(result.error);
+      setSubmitting(false);
     } else {
       toast.success('Outcome recorded.');
-      setSubmitted(true);
+      setSubmitting(false);
+      onSaved?.();
+      router.refresh();
     }
-
-    setSubmitting(false);
-    router.refresh();
-  }
-
-  if (submitted) {
-    return <p className="text-sm text-green-600 dark:text-green-400">Outcome recorded.</p>;
   }
 
   return (

@@ -30,6 +30,12 @@ export const CONFIDENCE_LABELS: Record<ConfidenceLevel, string> = {
   high: 'High',
 };
 
+export const CONFIDENCE_DESCRIPTORS: Record<ConfidenceLevel, string> = {
+  low: 'Low - I had doubts, it was an experiment',
+  medium: 'Medium - Reasonable basis, some uncertainty',
+  high: "High - Strong evidence, I'd make this call again",
+};
+
 export const CATEGORY_LABELS: Record<DecisionCategory, string> = {
   product: 'Product',
   pricing: 'Pricing',
@@ -49,7 +55,7 @@ export const OUTCOME_LABELS: Record<OutcomeStatus, string> = {
 export const OUTCOME_COLORS: Record<OutcomeStatus, string> = {
   pending: 'bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-300',
   vindicated: 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400',
-  reversed: 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400',
+  reversed: 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400',
   still_playing_out: 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400',
 };
 
@@ -70,7 +76,7 @@ export function getOutcomeDisplay(
   ) {
     return {
       label: 'Overdue',
-      color: 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400',
+      color: 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400',
     };
   }
   return {

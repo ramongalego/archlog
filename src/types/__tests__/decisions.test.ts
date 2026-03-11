@@ -13,7 +13,7 @@ describe('getOutcomeDisplay', () => {
   it('returns "Overdue" for pending decisions past their due date', () => {
     const result = getOutcomeDisplay('pending', '2026-03-09T00:00:00Z');
     expect(result.label).toBe('Overdue');
-    expect(result.color).toContain('red');
+    expect(result.color).toContain('amber');
   });
 
   it('returns "Overdue" when due date is exactly now', () => {
@@ -36,7 +36,7 @@ describe('getOutcomeDisplay', () => {
   it('returns "Reversed" regardless of due date', () => {
     const result = getOutcomeDisplay('reversed', '2026-01-01T00:00:00Z');
     expect(result.label).toBe('Reversed');
-    expect(result.color).toContain('amber');
+    expect(result.color).toContain('red');
   });
 
   it('returns "Ongoing" when not yet due', () => {
@@ -48,7 +48,7 @@ describe('getOutcomeDisplay', () => {
   it('returns "Overdue" for still_playing_out past due date', () => {
     const result = getOutcomeDisplay('still_playing_out', '2026-01-01T00:00:00Z');
     expect(result.label).toBe('Overdue');
-    expect(result.color).toContain('red');
+    expect(result.color).toContain('amber');
   });
 
   it('does not show overdue for resolved statuses even if past due', () => {

@@ -30,14 +30,18 @@ export function OutcomeSection({
 
   const isResolved = outcomeStatus === 'vindicated' || outcomeStatus === 'reversed';
 
-  // For pending / ongoing, just show the form
+  // For pending / ongoing, show the form pre-filled with any existing data
   if (!isResolved) {
     return (
       <Card>
         <h2 className="mb-3 text-sm font-medium text-gray-500 dark:text-gray-400">
           Record Outcome
         </h2>
-        <OutcomeForm decisionId={decisionId} />
+        <OutcomeForm
+          decisionId={decisionId}
+          initialStatus={outcomeStatus === 'still_playing_out' ? outcomeStatus : undefined}
+          initialNotes={outcomeNotes ?? undefined}
+        />
       </Card>
     );
   }
@@ -51,7 +55,13 @@ export function OutcomeSection({
         <h2 className="mb-3 text-sm font-medium text-gray-500 dark:text-gray-400">
           Change Outcome
         </h2>
-        <OutcomeForm decisionId={decisionId} onCancel={() => setChanging(false)} />
+        <OutcomeForm
+          decisionId={decisionId}
+          onCancel={() => setChanging(false)}
+          onSaved={() => setChanging(false)}
+          initialStatus={outcomeStatus}
+          initialNotes={outcomeNotes ?? undefined}
+        />
       </Card>
     );
   }

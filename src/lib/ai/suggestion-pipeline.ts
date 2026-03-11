@@ -30,7 +30,7 @@ export async function extractDecisionsFromText(text: string): Promise<ExtractedD
         role: 'user',
         content: `You analyze text to find significant product or technical decisions.
 
-Read the following text carefully and identify any significant decisions that were made. A decision is a deliberate choice — choosing a technology, changing architecture, adding/removing a feature, migrating systems, changing a business rule, hiring strategy, pricing change, etc.
+Read the following text carefully and identify any significant decisions that were made. A decision is a deliberate choice - choosing a technology, changing architecture, adding/removing a feature, migrating systems, changing a business rule, hiring strategy, pricing change, etc.
 
 Ignore routine items, minor fixes, and implementation details that don't reflect a deliberate choice.
 

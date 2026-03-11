@@ -142,7 +142,7 @@ export function Sidebar() {
               </svg>
               {item.label}
               {item.href === '/dashboard/decisions' && overdueCount > 0 && (
-                <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-semibold text-white">
+                <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1.5 text-[11px] font-semibold text-white">
                   {overdueCount}
                 </span>
               )}

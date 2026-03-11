@@ -33,7 +33,7 @@ export function ExtractForm({ projectId }: ExtractFormProps) {
         });
       } else {
         toast.success(
-          `${result.found} decision${result.found !== 1 ? 's' : ''} found — review them now`
+          `${result.found} decision${result.found !== 1 ? 's' : ''} found - review them now`
         );
         router.push('/dashboard/suggestions');
       }

@@ -199,7 +199,7 @@ export default async function AnalyticsPage() {
                           {vindicatedCount}/{reviewedCount}
                         </>
                       ) : (
-                        '—'
+                        '-'
                       )}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -370,7 +370,7 @@ export default async function AnalyticsPage() {
                                     </span>
                                   </div>
                                 ) : (
-                                  <span className="text-gray-300 dark:text-gray-700">—</span>
+                                  <span className="text-gray-300 dark:text-gray-700">-</span>
                                 )}
                               </div>
                             </td>
