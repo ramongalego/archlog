@@ -25,7 +25,7 @@ const CALIBRATION_THRESHOLD = 15;
 
 const outcomeBarColors: Record<OutcomeStatus, string> = {
   vindicated: 'bg-emerald-500',
-  reversed: 'bg-amber-500',
+  reversed: 'bg-red-500',
   still_playing_out: 'bg-blue-500',
   pending: 'bg-gray-400/60 dark:bg-gray-500/50',
 };
@@ -33,7 +33,7 @@ const outcomeBarColors: Record<OutcomeStatus, string> = {
 const heatmapOutcomes: OutcomeStatus[] = ['vindicated', 'reversed', 'still_playing_out'];
 const heatmapColors: Record<OutcomeStatus, string> = {
   vindicated: 'bg-emerald-500',
-  reversed: 'bg-amber-500',
+  reversed: 'bg-red-500',
   still_playing_out: 'bg-blue-500',
   pending: '',
 };
