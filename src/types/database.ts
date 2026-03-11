@@ -15,7 +15,7 @@ export type Database = {
           digest_opted_in: boolean;
           timezone: string;
           stripe_customer_id: string | null;
-          subscription_tier: 'free' | 'pro';
+          subscription_tier: 'free' | 'pro' | 'team';
           created_at: string;
           updated_at: string;
         };
@@ -27,7 +27,7 @@ export type Database = {
           digest_opted_in?: boolean;
           timezone?: string;
           stripe_customer_id?: string | null;
-          subscription_tier?: 'free' | 'pro';
+          subscription_tier?: 'free' | 'pro' | 'team';
           created_at?: string;
           updated_at?: string;
         };
@@ -39,7 +39,7 @@ export type Database = {
           digest_opted_in?: boolean;
           timezone?: string;
           stripe_customer_id?: string | null;
-          subscription_tier?: 'free' | 'pro';
+          subscription_tier?: 'free' | 'pro' | 'team';
           created_at?: string;
           updated_at?: string;
         };
@@ -404,7 +404,7 @@ export type Database = {
       confidence_level: 'low' | 'medium' | 'high';
       decision_category: 'product' | 'pricing' | 'technical' | 'hiring' | 'marketing' | 'other';
       outcome_status: 'pending' | 'vindicated' | 'reversed' | 'still_playing_out';
-      subscription_tier: 'free' | 'pro';
+      subscription_tier: 'free' | 'pro' | 'team';
       suggestion_status: 'pending' | 'accepted' | 'dismissed';
     };
     CompositeTypes: Record<string, never>;

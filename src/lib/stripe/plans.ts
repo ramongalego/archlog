@@ -22,3 +22,7 @@ export function canUseAiQuery(tier: SubscriptionTier): boolean {
 export function canSearchCrossProject(tier: SubscriptionTier): boolean {
   return getPlanLimits(tier).crossProjectSearch;
 }
+
+export function isPaidTier(tier: SubscriptionTier): boolean {
+  return tier !== 'free';
+}

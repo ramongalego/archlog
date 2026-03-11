@@ -26,4 +26,12 @@ export const PLAN_LIMITS: Record<SubscriptionTier, PlanLimits> = {
     crossProjectSearch: true,
     weeklyDigest: true,
   },
+  team: {
+    maxProjects: Infinity,
+    maxDecisions: Infinity,
+    aiQuery: true,
+    aiDrafting: true,
+    crossProjectSearch: true,
+    weeklyDigest: true,
+  },
 };

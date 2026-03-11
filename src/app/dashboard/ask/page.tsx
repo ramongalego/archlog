@@ -22,7 +22,7 @@ export default async function AskPage() {
     .eq('id', user.id)
     .single()) as { data: Pick<User, 'subscription_tier'> | null };
 
-  const isPro = profile?.subscription_tier === 'pro';
+  const isPro = profile?.subscription_tier === 'pro' || profile?.subscription_tier === 'team';
   const activeProjectId = await getActiveProjectId();
 
   let activeProjectName = 'This project';

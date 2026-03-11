@@ -4,6 +4,7 @@ import {
   canCreateProject,
   canUseAiQuery,
   canSearchCrossProject,
+  isPaidTier,
 } from '../plans';
 
 describe('getPlanLimits', () => {
@@ -19,6 +20,16 @@ describe('getPlanLimits', () => {
 
   it('returns pro plan limits', () => {
     const limits = getPlanLimits('pro');
+    expect(limits.maxProjects).toBe(Infinity);
+    expect(limits.maxDecisions).toBe(Infinity);
+    expect(limits.aiQuery).toBe(true);
+    expect(limits.aiDrafting).toBe(true);
+    expect(limits.crossProjectSearch).toBe(true);
+    expect(limits.weeklyDigest).toBe(true);
+  });
+
+  it('returns team plan limits', () => {
+    const limits = getPlanLimits('team');
     expect(limits.maxProjects).toBe(Infinity);
     expect(limits.maxDecisions).toBe(Infinity);
     expect(limits.aiQuery).toBe(true);
@@ -43,6 +54,11 @@ describe('canCreateDecision', () => {
     expect(canCreateDecision('pro', 0)).toBe(true);
     expect(canCreateDecision('pro', 10000)).toBe(true);
   });
+
+  it('always allows team users', () => {
+    expect(canCreateDecision('team', 0)).toBe(true);
+    expect(canCreateDecision('team', 10000)).toBe(true);
+  });
 });
 
 describe('canCreateProject', () => {
@@ -57,6 +73,10 @@ describe('canCreateProject', () => {
   it('always allows pro users', () => {
     expect(canCreateProject('pro', 100)).toBe(true);
   });
+
+  it('always allows team users', () => {
+    expect(canCreateProject('team', 100)).toBe(true);
+  });
 });
 
 describe('canUseAiQuery', () => {
@@ -67,6 +87,10 @@ describe('canUseAiQuery', () => {
   it('allows pro users', () => {
     expect(canUseAiQuery('pro')).toBe(true);
   });
+
+  it('allows team users', () => {
+    expect(canUseAiQuery('team')).toBe(true);
+  });
 });
 
 describe('canSearchCrossProject', () => {
@@ -76,5 +100,23 @@ describe('canSearchCrossProject', () => {
 
   it('allows pro users', () => {
     expect(canSearchCrossProject('pro')).toBe(true);
+  });
+
+  it('allows team users', () => {
+    expect(canSearchCrossProject('team')).toBe(true);
+  });
+});
+
+describe('isPaidTier', () => {
+  it('returns false for free', () => {
+    expect(isPaidTier('free')).toBe(false);
+  });
+
+  it('returns true for pro', () => {
+    expect(isPaidTier('pro')).toBe(true);
+  });
+
+  it('returns true for team', () => {
+    expect(isPaidTier('team')).toBe(true);
   });
 });

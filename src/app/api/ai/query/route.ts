@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     .single()) as { data: Pick<User, 'subscription_tier'> | null };
 
   if (!profile || !canUseAiQuery(profile.subscription_tier)) {
-    return new Response(JSON.stringify({ error: 'AI query is available on the Pro plan.' }), {
+    return new Response(JSON.stringify({ error: 'AI query requires a paid plan. Upgrade to unlock.' }), {
       status: 403,
       headers: { 'Content-Type': 'application/json' },
     });
@@ -42,10 +42,10 @@ export async function POST(request: Request) {
 
   const { question, project_id } = parsed.data;
 
-  // Cross-project query (no project_id) requires Pro with cross-project search
+  // Cross-project query (no project_id) requires a paid plan with cross-project search
   if (!project_id && !canSearchCrossProject(profile.subscription_tier)) {
     return new Response(
-      JSON.stringify({ error: 'Cross-project search is available on the Pro plan.' }),
+      JSON.stringify({ error: 'Cross-project search requires a paid plan. Upgrade to unlock.' }),
       { status: 403, headers: { 'Content-Type': 'application/json' } }
     );
   }

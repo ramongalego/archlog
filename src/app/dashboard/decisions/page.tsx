@@ -6,6 +6,7 @@ import { DecisionsContent } from './decisions-content';
 import { getActiveProjectId } from '@/lib/active-project';
 import type { DecisionCategory, OutcomeStatus, ConfidenceLevel } from '@/types/decisions';
 import type { DecisionCardData } from '@/components/decisions/decision-card';
+import type { User } from '@/types/decisions';
 
 export const metadata: Metadata = { title: 'Decisions' };
 
@@ -45,6 +46,25 @@ export default async function DecisionsPage({
     page,
   };
 
+  // Fetch user tier and total decision count for usage indicator
+  const { data: profile } = (await supabase
+    .from('users')
+    .select('subscription_tier')
+    .eq('id', user.id)
+    .single()) as { data: Pick<User, 'subscription_tier'> | null };
+
+  const tier = profile?.subscription_tier ?? 'free';
+
+  let totalDecisionCount: number | null = null;
+  if (tier === 'free') {
+    const { count } = await supabase
+      .from('decisions')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('is_archived', false);
+    totalDecisionCount = count ?? 0;
+  }
+
   const { decisions, total } = await listDecisions({
     projectId: activeProjectId ?? undefined,
     search: search || undefined,
@@ -64,6 +84,8 @@ export default async function DecisionsPage({
       initialDecisions={decisions as DecisionCardData[]}
       initialTotal={total}
       initialFilters={initialFilters}
+      tier={tier}
+      totalDecisionCount={totalDecisionCount}
     />
   );
 }

@@ -11,6 +11,7 @@ import { Dropdown } from '@/components/ui/dropdown';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { PageHeader } from '@/components/ui/page-header';
+import { UpgradeModal } from '@/components/ui/upgrade-modal';
 import type { User } from '@/types/decisions';
 
 const COMMON_TIMEZONES: { value: string; label: string }[] = [
@@ -137,24 +138,12 @@ function TimezoneField({
 
 function BillingSection({ tier }: { tier: string }) {
   const searchParams = useSearchParams();
-  const [upgrading, setUpgrading] = useState(false);
   const [managing, setManaging] = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(false);
 
   const billingStatus = searchParams.get('billing');
-  const isPro = tier === 'pro';
-
-  async function handleUpgrade() {
-    setUpgrading(true);
-    try {
-      const res = await fetch('/api/stripe/checkout', { method: 'POST' });
-      const data = await res.json();
-      if (data.checkout_url) {
-        window.location.href = data.checkout_url;
-      }
-    } catch {
-      setUpgrading(false);
-    }
-  }
+  const isPaid = tier === 'pro' || tier === 'team';
+  const tierLabel = tier === 'team' ? 'Team' : tier === 'pro' ? 'Founder' : 'Free';
 
   async function handleManage() {
     setManaging(true);
@@ -170,50 +159,61 @@ function BillingSection({ tier }: { tier: string }) {
   }
 
   return (
-    <Card>
-      <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Plan</h2>
+    <>
+      <Card>
+        <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Plan</h2>
 
-      {billingStatus === 'success' && (
-        <p className="mb-3 text-sm text-green-600">You are now on Pro. Thanks for upgrading.</p>
-      )}
-      {billingStatus === 'cancelled' && (
-        <p className="mb-3 text-sm text-gray-500 dark:text-gray-400">
-          Checkout was cancelled. No changes made.
-        </p>
-      )}
-
-      <div className="flex items-center gap-2 mb-3">
-        <Badge
-          className={
-            isPro
-              ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
-              : 'bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
-          }
-        >
-          {isPro ? 'Pro' : 'Free'}
-        </Badge>
-        {!isPro && (
-          <span className="text-xs text-gray-500 dark:text-gray-400">
-            1 project, 50 decisions, AI drafting included
-          </span>
+        {billingStatus === 'success' && (
+          <p className="mb-3 text-sm text-green-600">
+            You are now on {tierLabel}. Thanks for upgrading.
+          </p>
         )}
-        {isPro && (
-          <span className="text-xs text-gray-500 dark:text-gray-400">
-            Unlimited projects, unlimited decisions, AI query
-          </span>
+        {billingStatus === 'cancelled' && (
+          <p className="mb-3 text-sm text-gray-500 dark:text-gray-400">
+            Checkout was cancelled. No changes made.
+          </p>
         )}
-      </div>
 
-      {isPro ? (
-        <Button variant="secondary" size="sm" onClick={handleManage} disabled={managing}>
-          {managing ? 'Opening...' : 'Manage subscription'}
-        </Button>
-      ) : (
-        <Button size="sm" onClick={handleUpgrade} disabled={upgrading}>
-          {upgrading ? 'Redirecting...' : 'Upgrade to Pro'}
-        </Button>
-      )}
-    </Card>
+        <div className="flex items-center gap-2 mb-3">
+          <Badge
+            className={
+              tier === 'team'
+                ? 'bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400'
+                : tier === 'pro'
+                  ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                  : 'bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+            }
+          >
+            {tierLabel}
+          </Badge>
+          <span className="text-xs text-gray-500 dark:text-gray-400">
+            {tier === 'free' && '1 project, 50 decisions, AI drafting included'}
+            {tier === 'pro' && 'Unlimited projects, unlimited decisions, AI query'}
+            {tier === 'team' && 'Unlimited projects, unlimited decisions, AI query, up to 5 users'}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {tier !== 'team' && (
+            <Button size="sm" onClick={() => setShowUpgrade(true)}>
+              Upgrade
+            </Button>
+          )}
+          {isPaid && (
+            <Button variant="secondary" size="sm" onClick={handleManage} disabled={managing}>
+              {managing ? 'Opening...' : 'Manage subscription'}
+            </Button>
+          )}
+        </div>
+      </Card>
+
+      <UpgradeModal
+        open={showUpgrade}
+        currentTier={tier as 'free' | 'pro' | 'team'}
+        onUpgrade={() => {}}
+        onClose={() => setShowUpgrade(false)}
+      />
+    </>
   );
 }
 

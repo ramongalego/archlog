@@ -23,8 +23,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
   }
 
-  if (profile.subscription_tier === 'pro') {
-    return NextResponse.json({ error: 'Already on Pro' }, { status: 409 });
+  const body = await request.json().catch(() => ({}));
+  const plan = (body as { plan?: string }).plan === 'team' ? 'team' : 'pro';
+
+  if (profile.subscription_tier === plan) {
+    return NextResponse.json(
+      { error: `Already on ${plan === 'team' ? 'Team' : 'Founder'} plan` },
+      { status: 409 }
+    );
   }
 
   // Create or reuse Stripe customer
@@ -42,7 +48,10 @@ export async function POST(request: Request) {
       .eq('id', user.id);
   }
 
-  const priceId = process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID;
+  const priceId =
+    plan === 'team'
+      ? process.env.NEXT_PUBLIC_STRIPE_TEAM_PRICE_ID
+      : process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID;
   if (!priceId) {
     return NextResponse.json({ error: 'Stripe price not configured' }, { status: 500 });
   }
@@ -51,6 +60,7 @@ export async function POST(request: Request) {
     customer: customerId,
     mode: 'subscription',
     line_items: [{ price: priceId, quantity: 1 }],
+    metadata: { plan },
     success_url: `${request.headers.get('origin')}/dashboard/settings?billing=success`,
     cancel_url: `${request.headers.get('origin')}/dashboard/settings?billing=cancelled`,
   });

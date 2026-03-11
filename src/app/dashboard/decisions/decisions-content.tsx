@@ -8,6 +8,7 @@ import { DecisionList } from '@/components/decisions/decision-card';
 import { FilterBar } from '@/components/decisions/filter-bar';
 import type { Filters } from '@/components/decisions/filter-bar';
 import type { DecisionCardData } from '@/components/decisions/decision-card';
+import { UpgradeModal } from '@/components/ui/upgrade-modal';
 import { listDecisions } from './actions';
 
 const PAGE_SIZE = 20;
@@ -32,6 +33,8 @@ interface DecisionsContentProps {
   initialDecisions: DecisionCardData[];
   initialTotal: number;
   initialFilters: Filters;
+  tier: string;
+  totalDecisionCount: number | null;
 }
 
 export function DecisionsContent({
@@ -39,11 +42,14 @@ export function DecisionsContent({
   initialDecisions,
   initialTotal,
   initialFilters,
+  tier,
+  totalDecisionCount,
 }: DecisionsContentProps) {
   const [filters, setFilters] = useState<Filters>(initialFilters);
   const [decisions, setDecisions] = useState<DecisionCardData[]>(initialDecisions);
   const [total, setTotal] = useState(initialTotal);
   const [loading, setLoading] = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(false);
 
   const filtersRef = useRef(initialFilters);
   const fetchIdRef = useRef(0);
@@ -154,6 +160,31 @@ export function DecisionsContent({
         onClear={handleClear}
       />
 
+      {tier === 'free' && totalDecisionCount !== null && (
+        <div className="flex flex-col items-end gap-0.5">
+          <span
+            className={`text-xs ${
+              totalDecisionCount >= 50
+                ? 'text-red-500 dark:text-red-400'
+                : totalDecisionCount >= 40
+                  ? 'text-amber-500 dark:text-amber-400'
+                  : 'text-gray-400 dark:text-gray-500'
+            }`}
+          >
+            {totalDecisionCount}/50 Decisions
+          </span>
+          {totalDecisionCount >= 40 && (
+            <button
+              type="button"
+              onClick={() => setShowUpgrade(true)}
+              className="cursor-pointer text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 underline underline-offset-2 transition-colors"
+            >
+              Upgrade for unlimited
+            </button>
+          )}
+        </div>
+      )}
+
       {loading ? (
         <div className="space-y-3">
           {Array.from({ length: 5 }).map((_, i) => (
@@ -218,6 +249,13 @@ export function DecisionsContent({
           )}
         </div>
       )}
+
+      <UpgradeModal
+        open={showUpgrade}
+        currentTier="free"
+        onUpgrade={() => {}}
+        onClose={() => setShowUpgrade(false)}
+      />
     </div>
   );
 }

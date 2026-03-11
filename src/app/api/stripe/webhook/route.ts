@@ -34,6 +34,7 @@ export async function POST(request: Request) {
       const session = event.data.object as Stripe.Checkout.Session;
       const customerId = session.customer as string;
       const subscriptionId = session.subscription as string;
+      const plan = (session.metadata?.plan === 'team' ? 'team' : 'pro') as 'pro' | 'team';
 
       // Find user by stripe_customer_id
       const { data: user } = await supabase
@@ -43,18 +44,23 @@ export async function POST(request: Request) {
         .single();
 
       if (user) {
+        const priceId =
+          plan === 'team'
+            ? process.env.NEXT_PUBLIC_STRIPE_TEAM_PRICE_ID!
+            : process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID!;
+
         // Create subscription record
         await supabase.from('subscriptions').insert({
           user_id: (user as { id: string }).id,
           stripe_subscription_id: subscriptionId,
-          stripe_price_id: process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID!,
+          stripe_price_id: priceId,
           status: 'active',
         });
 
-        // Upgrade user to Pro
+        // Upgrade user to the purchased tier
         await supabase
           .from('users')
-          .update({ subscription_tier: 'pro' })
+          .update({ subscription_tier: plan })
           .eq('id', (user as { id: string }).id);
       }
       break;
@@ -72,6 +78,19 @@ export async function POST(request: Request) {
           current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
         })
         .eq('stripe_subscription_id', subscription.id);
+
+      // Detect plan changes (e.g. Founder <-> Team via billing portal)
+      const priceId = subscription.items.data[0]?.price.id;
+      const teamPriceId = process.env.NEXT_PUBLIC_STRIPE_TEAM_PRICE_ID;
+      const newTier = priceId === teamPriceId ? 'team' : 'pro';
+      const subCustomerId = subscription.customer as string;
+
+      if (subscription.status === 'active') {
+        await supabase
+          .from('users')
+          .update({ subscription_tier: newTier })
+          .eq('stripe_customer_id', subCustomerId);
+      }
       break;
     }
 

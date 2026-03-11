@@ -313,7 +313,7 @@ export default function LandingPage() {
             Pricing
           </h2>
           <p className="mt-4 text-center text-gray-500 dark:text-gray-400 max-w-md mx-auto">
-            Start free. Upgrade when you need more projects and AI search.
+            Start where you are. Scale when you&apos;re ready.
           </p>
 
           {/* Billing toggle */}

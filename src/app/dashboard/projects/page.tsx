@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import type { Project } from '@/types/decisions';
+import type { Project, User } from '@/types/decisions';
 import { PageHeader } from '@/components/ui/page-header';
 import { ProjectActions } from './project-actions';
 
@@ -21,6 +21,14 @@ export default async function ProjectsPage() {
   } = await supabase.auth.getUser();
 
   if (!user) redirect('/login');
+
+  const { data: profile } = (await supabase
+    .from('users')
+    .select('subscription_tier')
+    .eq('id', user.id)
+    .single()) as { data: Pick<User, 'subscription_tier'> | null };
+
+  const tier = profile?.subscription_tier ?? 'free';
 
   // Get all projects (including archived so user can see them)
   const { data: projects } = (await supabase
@@ -54,7 +62,7 @@ export default async function ProjectsPage() {
     <div className="mx-auto max-w-3xl space-y-6">
       <PageHeader title="Projects" />
 
-      <ProjectActions projects={projectsWithCounts} />
+      <ProjectActions projects={projectsWithCounts} tier={tier} />
     </div>
   );
 }

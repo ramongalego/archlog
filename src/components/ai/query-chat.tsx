@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { UpgradeModal } from '@/components/ui/upgrade-modal';
 import Link from 'next/link';
 
 interface Citation {
@@ -27,19 +28,28 @@ export function QueryChat({
   const [citations, setCitations] = useState<Citation[]>([]);
   const [loading, setLoading] = useState(false);
   const [scope, setScope] = useState<'project' | 'all'>('project');
+  const [showUpgrade, setShowUpgrade] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
   if (!isPro) {
     return (
-      <Card className="text-center py-8">
-        <p className="text-gray-700 dark:text-gray-300 font-medium">AI Query is a Pro feature</p>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Upgrade to Pro to ask questions about your past decisions and get AI-powered insights.
-        </p>
-        <Link href="/dashboard/settings" className="mt-4 inline-block">
-          <Button>Upgrade to Pro</Button>
-        </Link>
-      </Card>
+      <>
+        <Card className="text-center py-8">
+          <p className="text-gray-700 dark:text-gray-300 font-medium">AI Query is a paid feature</p>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Upgrade to ask questions about your past decisions and get AI-powered insights.
+          </p>
+          <Button className="mt-4" onClick={() => setShowUpgrade(true)}>
+            Upgrade
+          </Button>
+        </Card>
+        <UpgradeModal
+          open={showUpgrade}
+          currentTier="free"
+          onUpgrade={() => {}}
+          onClose={() => setShowUpgrade(false)}
+        />
+      </>
     );
   }
 

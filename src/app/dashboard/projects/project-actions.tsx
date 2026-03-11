@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
+import { UpgradeModal } from '@/components/ui/upgrade-modal';
 import {
   createProject,
   updateProject,
@@ -25,7 +26,7 @@ interface ProjectItem {
   decision_count: number;
 }
 
-export function ProjectActions({ projects }: { projects: ProjectItem[] }) {
+export function ProjectActions({ projects, tier }: { projects: ProjectItem[]; tier: string }) {
   const router = useRouter();
   const [optimisticProjects, addOptimistic] = useOptimistic(
     projects,
@@ -52,8 +53,9 @@ export function ProjectActions({ projects }: { projects: ProjectItem[] }) {
   const [editDescription, setEditDescription] = useState('');
   const [archivingId, setArchivingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [showUpgrade, setShowUpgrade] = useState(false);
 
-  async function handleCreate(e: React.FormEvent) {
+  function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     if (!newName.trim()) return;
 
@@ -71,20 +73,22 @@ export function ProjectActions({ projects }: { projects: ProjectItem[] }) {
       is_archived: false,
       decision_count: 0,
     };
-    addOptimistic({ type: 'create', project: optimisticProject });
     setNewName('');
     setNewDescription('');
 
-    const result = await createProject(formData);
+    startTransition(async () => {
+      addOptimistic({ type: 'create', project: optimisticProject });
+      const result = await createProject(formData);
 
-    if (result.error) {
-      toast.error(result.error);
-    } else {
-      toast.success('Project created.');
-      router.refresh();
-    }
+      if (result.error) {
+        toast.error(result.error);
+      } else {
+        toast.success('Project created.');
+        router.refresh();
+      }
 
-    setCreating(false);
+      setCreating(false);
+    });
   }
 
   async function handleRename(projectId: string) {
@@ -169,8 +173,23 @@ export function ProjectActions({ projects }: { projects: ProjectItem[] }) {
         </form>
       </Card>
 
+      {tier === 'free' && (
+        <div className="flex flex-col items-end gap-0.5">
+          <span className="text-xs text-red-500 dark:text-red-400">
+            {optimisticProjects.filter((p) => !p.is_archived).length}/1 Projects
+          </span>
+          <button
+            type="button"
+            onClick={() => setShowUpgrade(true)}
+            className="cursor-pointer text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 underline underline-offset-2 transition-colors"
+          >
+            Upgrade for unlimited
+          </button>
+        </div>
+      )}
+
       {/* Project list */}
-      <div className="space-y-2">
+      <div className="space-y-3">
         {optimisticProjects.map((p) => (
           <Card key={p.id} className={p.id.startsWith('temp-') ? 'opacity-60' : ''}>
             {editingId === p.id ? (
@@ -271,6 +290,12 @@ export function ProjectActions({ projects }: { projects: ProjectItem[] }) {
         variant="danger"
         onConfirm={() => deletingId && handleDelete(deletingId)}
         onCancel={() => setDeletingId(null)}
+      />
+      <UpgradeModal
+        open={showUpgrade}
+        currentTier="free"
+        onUpgrade={() => {}}
+        onClose={() => setShowUpgrade(false)}
       />
     </div>
   );
