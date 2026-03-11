@@ -10,11 +10,31 @@ export default function LandingPage() {
   return (
     <div className="flex min-h-screen flex-col bg-white dark:bg-gray-950">
       {/* Header */}
-      <header className="border-b border-gray-100 dark:border-gray-800/60">
+      <header className="sticky top-0 z-50 border-b border-gray-100 dark:border-gray-800/60 bg-white/80 dark:bg-gray-950/80 backdrop-blur-sm">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-          <span className="text-lg font-bold tracking-tight text-gray-900 dark:text-gray-100">
+          <a href="#" className="text-lg font-bold tracking-tight text-gray-900 dark:text-gray-100">
             ArchLog
-          </span>
+          </a>
+          <nav className="hidden sm:flex items-center gap-6">
+            <a
+              href="#how-it-works"
+              className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+            >
+              How it works
+            </a>
+            <a
+              href="#integrations"
+              className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+            >
+              Integrations
+            </a>
+            <a
+              href="#pricing"
+              className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+            >
+              Pricing
+            </a>
+          </nav>
           <div className="flex items-center gap-2">
             <ThemeToggle />
             <Link
@@ -69,7 +89,10 @@ export default function LandingPage() {
       </section>
 
       {/* How it works */}
-      <section className="border-t border-gray-100 dark:border-gray-800/60 bg-gray-50/50 dark:bg-gray-900/30 px-6 py-24">
+      <section
+        id="how-it-works"
+        className="scroll-mt-14 border-t border-gray-100 dark:border-gray-800/60 bg-gray-50/50 dark:bg-gray-900/30 px-6 py-24"
+      >
         <div className="mx-auto max-w-5xl">
           <h2 className="text-center text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100 sm:text-3xl">
             How it works
@@ -216,7 +239,10 @@ export default function LandingPage() {
       </section>
 
       {/* Integrations */}
-      <section className="border-t border-gray-100 dark:border-gray-800/60 bg-gray-50/50 dark:bg-gray-900/30 px-6 py-24">
+      <section
+        id="integrations"
+        className="scroll-mt-14 border-t border-gray-100 dark:border-gray-800/60 bg-gray-50/50 dark:bg-gray-900/30 px-6 py-24"
+      >
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100 sm:text-3xl">
             Works where you already work
@@ -256,7 +282,7 @@ export default function LandingPage() {
             ].map((tool) => (
               <div key={tool.name} className="group flex flex-col items-center gap-3">
                 <div
-                  className={`text-gray-300 dark:text-gray-600 transition-colors ${tool.hoverColor}`}
+                  className={`text-gray-400 dark:text-gray-500 transition-colors ${tool.hoverColor}`}
                 >
                   <svg viewBox="0 0 24 24" fill="currentColor" className="h-9 w-9">
                     <path d={tool.path} />
@@ -278,10 +304,13 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing */}
-      <section className="border-t border-gray-100 dark:border-gray-800/60 px-6 py-24">
+      <section
+        id="pricing"
+        className="scroll-mt-14 border-t border-gray-100 dark:border-gray-800/60 px-6 py-24"
+      >
         <div className="mx-auto max-w-5xl">
           <h2 className="text-center text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100 sm:text-3xl">
-            Simple pricing
+            Pricing
           </h2>
           <p className="mt-4 text-center text-gray-500 dark:text-gray-400 max-w-md mx-auto">
             Start free. Upgrade when you need more projects and AI search.
