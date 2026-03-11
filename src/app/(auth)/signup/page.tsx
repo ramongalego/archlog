@@ -19,10 +19,14 @@ export default function SignupPage() {
     setLoading(true);
     setError('');
 
+    const detectedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: `${window.location.origin}/callback` },
+      options: {
+        emailRedirectTo: `${window.location.origin}/callback`,
+        data: { timezone: detectedTimezone },
+      },
     });
 
     if (error) {

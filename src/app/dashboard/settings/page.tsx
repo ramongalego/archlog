@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { createClient } from '@/lib/supabase/client';
@@ -12,6 +12,128 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { PageHeader } from '@/components/ui/page-header';
 import type { User } from '@/types/decisions';
+
+const COMMON_TIMEZONES: { value: string; label: string }[] = [
+  { value: 'Pacific/Midway', label: 'UTC-11:00 - American Samoa' },
+  { value: 'Pacific/Honolulu', label: 'UTC-10:00 - Hawaii' },
+  { value: 'America/Anchorage', label: 'UTC-09:00 - Alaska' },
+  { value: 'America/Los_Angeles', label: 'UTC-08:00 - Pacific Time (US & Canada)' },
+  { value: 'America/Denver', label: 'UTC-07:00 - Mountain Time (US & Canada)' },
+  { value: 'America/Chicago', label: 'UTC-06:00 - Central Time (US & Canada)' },
+  { value: 'America/New_York', label: 'UTC-05:00 - Eastern Time (US & Canada)' },
+  { value: 'America/Halifax', label: 'UTC-04:00 - Atlantic Time' },
+  { value: 'America/Sao_Paulo', label: 'UTC-03:00 - Buenos Aires / Sao Paulo' },
+  { value: 'Atlantic/Azores', label: 'UTC-01:00 - Azores' },
+  { value: 'Europe/London', label: 'UTC+00:00 - London / Lisbon / Dublin' },
+  { value: 'Europe/Paris', label: 'UTC+01:00 - Paris / Berlin / Madrid / Rome' },
+  { value: 'Europe/Helsinki', label: 'UTC+02:00 - Cairo / Johannesburg / Helsinki' },
+  { value: 'Europe/Moscow', label: 'UTC+03:00 - Moscow / Istanbul / Nairobi' },
+  { value: 'Asia/Dubai', label: 'UTC+04:00 - Dubai / Baku' },
+  { value: 'Asia/Karachi', label: 'UTC+05:00 - Karachi / Tashkent' },
+  { value: 'Asia/Kolkata', label: 'UTC+05:30 - India' },
+  { value: 'Asia/Dhaka', label: 'UTC+06:00 - Dhaka / Almaty' },
+  { value: 'Asia/Bangkok', label: 'UTC+07:00 - Bangkok / Jakarta' },
+  { value: 'Asia/Singapore', label: 'UTC+08:00 - Singapore / Hong Kong / Perth' },
+  { value: 'Asia/Tokyo', label: 'UTC+09:00 - Tokyo / Seoul' },
+  { value: 'Australia/Adelaide', label: 'UTC+09:30 - Adelaide / Darwin' },
+  { value: 'Australia/Sydney', label: 'UTC+10:00 - Sydney / Brisbane' },
+  { value: 'Pacific/Auckland', label: 'UTC+12:00 - Auckland' },
+];
+
+function getTimezoneLabel(tz: string): string {
+  return COMMON_TIMEZONES.find((t) => t.value === tz)?.label ?? tz;
+}
+
+function TimezoneField({
+  timezone,
+  onChange,
+}: {
+  timezone: string;
+  onChange: (tz: string) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [search, setSearch] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const filtered = useMemo(() => {
+    if (!search) return COMMON_TIMEZONES;
+    const q = search.toLowerCase();
+    return COMMON_TIMEZONES.filter(
+      (tz) => tz.label.toLowerCase().includes(q) || tz.value.toLowerCase().includes(q)
+    );
+  }, [search]);
+
+  useEffect(() => {
+    if (editing && inputRef.current) inputRef.current.focus();
+  }, [editing]);
+
+  useEffect(() => {
+    if (!editing) return;
+    function handleClick(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setEditing(false);
+        setSearch('');
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [editing]);
+
+  if (!editing) {
+    return (
+      <div className="flex items-center gap-2 text-sm">
+        <span className="text-gray-500 dark:text-gray-400">
+          Timezone: {getTimezoneLabel(timezone)} &middot;
+        </span>
+        <button
+          type="button"
+          onClick={() => setEditing(true)}
+          className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 underline underline-offset-2 transition-colors"
+        >
+          Change
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div ref={containerRef} className="relative">
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        Timezone
+      </label>
+      <Input
+        ref={inputRef}
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Search timezones..."
+      />
+      <div className="absolute left-0 right-0 z-50 mt-1 max-h-48 overflow-auto rounded-lg border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-900 py-1 shadow-lg shadow-gray-200/50 dark:shadow-black/30">
+        {filtered.map((tz) => (
+          <button
+            key={tz.value}
+            type="button"
+            onClick={() => {
+              onChange(tz.value);
+              setEditing(false);
+              setSearch('');
+            }}
+            className={`flex w-full items-center px-3 py-1.5 text-left text-sm transition-colors ${
+              tz.value === timezone
+                ? 'bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium'
+                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/60 hover:text-gray-900 dark:hover:text-gray-200'
+            }`}
+          >
+            {tz.label}
+          </button>
+        ))}
+        {filtered.length === 0 && (
+          <p className="px-3 py-2 text-sm text-gray-400 dark:text-gray-500">No matches</p>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function BillingSection({ tier }: { tier: string }) {
   const searchParams = useSearchParams();
@@ -238,24 +360,7 @@ export default function SettingsPage() {
             </label>
           </div>
 
-          <div>
-            <label
-              htmlFor="timezone"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
-              Timezone
-            </label>
-            <Input
-              id="timezone"
-              value={timezone}
-              onChange={(e) => setTimezone(e.target.value)}
-              placeholder="e.g. America/New_York"
-              className="mt-1"
-            />
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Used for scheduling digests and reminders.
-            </p>
-          </div>
+          <TimezoneField timezone={timezone} onChange={setTimezone} />
 
           <Button type="submit" disabled={saving}>
             {saving ? 'Saving...' : 'Save settings'}

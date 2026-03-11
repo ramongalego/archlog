@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/page-header';
@@ -48,9 +48,11 @@ export function DecisionsContent({
   const filtersRef = useRef(initialFilters);
   const fetchIdRef = useRef(0);
   const searchTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
+  const prevProjectIdRef = useRef(activeProjectId);
 
   const doFetch = useCallback(
     async (f: Filters) => {
+      setLoading(true);
       const id = ++fetchIdRef.current;
       try {
         const result = await listDecisions({
@@ -79,12 +81,18 @@ export function DecisionsContent({
     [activeProjectId]
   );
 
+  useEffect(() => {
+    if (prevProjectIdRef.current !== activeProjectId) {
+      prevProjectIdRef.current = activeProjectId;
+      doFetch(filtersRef.current);
+    }
+  }, [activeProjectId, doFetch]);
+
   function handleFilterChange(key: string, value: string | boolean | number) {
     const next = { ...filtersRef.current, [key]: value } as Filters;
     if (key !== 'page') next.page = 1;
     filtersRef.current = next;
     setFilters(next);
-    setLoading(true);
 
     if (key === 'search') {
       if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
@@ -108,7 +116,6 @@ export function DecisionsContent({
     };
     filtersRef.current = next;
     setFilters(next);
-    setLoading(true);
     doFetch(next);
   }
 

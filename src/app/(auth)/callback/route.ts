@@ -10,6 +10,14 @@ export async function GET(request: Request) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
+      // Persist auto-detected timezone from signup metadata
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      const tz = user?.user_metadata?.timezone;
+      if (user && typeof tz === 'string' && tz) {
+        await supabase.from('users').update({ timezone: tz }).eq('id', user.id);
+      }
       return NextResponse.redirect(`${origin}${next}`);
     }
   }
