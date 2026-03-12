@@ -28,7 +28,7 @@ export async function POST(request: Request) {
 
   if (profile.subscription_tier === plan) {
     return NextResponse.json(
-      { error: `Already on ${plan === 'team' ? 'Team' : 'Founder'} plan` },
+      { error: `Already on ${plan === 'team' ? 'Team' : 'Solo'} plan` },
       { status: 409 }
     );
   }

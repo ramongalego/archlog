@@ -46,7 +46,7 @@ export default async function DecisionDetailPage({ params }: { params: Promise<{
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <div className="flex items-start justify-between">
+      <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-gray-100">
             {decision.title}
@@ -55,7 +55,7 @@ export default async function DecisionDetailPage({ params }: { params: Promise<{
             {formatDate(decision.created_at)}
           </p>
         </div>
-        <div className="flex items-center">
+        <div className="flex shrink-0 items-center">
           {!decision.is_archived && (
             <Link href={`/dashboard/decisions/${decision.id}/edit`}>
               <Button variant="secondary" size="sm">

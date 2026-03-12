@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -39,8 +39,6 @@ interface DecisionFormProps {
   };
 }
 
-const DRAFT_KEY = 'archlog-draft';
-
 export function DecisionForm({
   action,
   projectId,
@@ -67,39 +65,6 @@ export function DecisionForm({
   const [draftSuggestion, setDraftSuggestion] = useState<DraftSuggestion | null>(null);
   const [isDrafting, setIsDrafting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-
-  // Auto-save draft to localStorage
-  useEffect(() => {
-    if (!initialData) {
-      const saved = localStorage.getItem(DRAFT_KEY);
-      if (saved) {
-        try {
-          const draft = JSON.parse(saved);
-          if (draft.title) setTitle(draft.title);
-          if (draft.why) setWhy(draft.why);
-          if (draft.context) setContext(draft.context);
-          if (draft.confidence) setConfidence(draft.confidence);
-          if (draft.category) setCategory(draft.category);
-        } catch {
-          // ignore corrupt draft
-        }
-      }
-    }
-  }, [initialData]);
-
-  const saveDraft = useCallback(() => {
-    if (!initialData) {
-      localStorage.setItem(
-        DRAFT_KEY,
-        JSON.stringify({ title, why, context, confidence, category })
-      );
-    }
-  }, [title, why, context, confidence, category, initialData]);
-
-  useEffect(() => {
-    const timer = setTimeout(saveDraft, 1000);
-    return () => clearTimeout(timer);
-  }, [saveDraft]);
 
   async function handleAIDraft() {
     if (!rawNote.trim()) return;
@@ -165,7 +130,6 @@ export function DecisionForm({
       setSubmitting(false);
     } else {
       toast.success(initialData && !redirectTo ? 'Decision updated.' : 'Decision logged.');
-      localStorage.removeItem(DRAFT_KEY);
       router.push(redirectTo ?? `/dashboard/decisions/${result.id}`);
     }
   }
@@ -222,19 +186,6 @@ export function DecisionForm({
         />
       </div>
 
-      {/* Why (Tiptap) */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          Why
-        </label>
-        <TiptapEditor
-          key={why ? JSON.stringify(why).slice(0, 50) : 'empty'}
-          content={why}
-          onChange={setWhy}
-          placeholder="The reasoning, alternatives considered, trade-offs..."
-        />
-      </div>
-
       {/* Context */}
       <div>
         <label
@@ -250,6 +201,19 @@ export function DecisionForm({
           placeholder="What situation prompted this decision?"
           className="mt-1 block w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-gray-400 dark:focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-gray-100/10 transition-colors"
           rows={3}
+        />
+      </div>
+
+      {/* Why (Tiptap) */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Why
+        </label>
+        <TiptapEditor
+          key={why ? JSON.stringify(why).slice(0, 50) : 'empty'}
+          content={why}
+          onChange={setWhy}
+          placeholder="The reasoning, alternatives considered, trade-offs..."
         />
       </div>
 
@@ -341,14 +305,7 @@ export function DecisionForm({
               ? 'Update Decision'
               : 'Log Decision'}
         </Button>
-        <Button
-          type="button"
-          variant="secondary"
-          onClick={() => {
-            localStorage.removeItem(DRAFT_KEY);
-            router.back();
-          }}
-        >
+        <Button type="button" variant="secondary" onClick={() => router.back()}>
           Cancel
         </Button>
       </div>

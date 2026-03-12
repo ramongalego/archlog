@@ -29,7 +29,13 @@ Return ONLY a JSON object (no markdown, no explanation):
   "why": "The reasoning and trade-offs in their own words",
   "context": "What was going on that forced this decision",
   "confidence": "low" | "medium" | "high",
-  "category": "product" | "pricing" | "technical" | "hiring" | "marketing" | "other"
+  "category": one of the following — pick based on what DROVE the decision, not what it touches:
+    "product" — what the product does, features, UX, scope
+    "pricing" — tiers, plans, costs, what each tier gets, monetization, limits that differ by plan
+    "technical" — architecture, infrastructure, stack choices, performance (when not tied to pricing)
+    "hiring" — roles, team structure, hiring process
+    "marketing" — positioning, channels, messaging, growth
+    "other" — none of the above
 }`,
       },
     ],

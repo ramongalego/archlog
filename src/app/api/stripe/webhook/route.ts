@@ -79,7 +79,7 @@ export async function POST(request: Request) {
         })
         .eq('stripe_subscription_id', subscription.id);
 
-      // Detect plan changes (e.g. Founder <-> Team via billing portal)
+      // Detect plan changes (e.g. Solo <-> Team via billing portal)
       const priceId = subscription.items.data[0]?.price.id;
       const teamPriceId = process.env.NEXT_PUBLIC_STRIPE_TEAM_PRICE_ID;
       const newTier = priceId === teamPriceId ? 'team' : 'pro';

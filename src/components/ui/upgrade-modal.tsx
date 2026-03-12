@@ -48,7 +48,7 @@ export function UpgradeModal({ open, currentTier, onUpgrade, onClose }: UpgradeM
     },
     {
       id: 'pro' as const,
-      name: 'Founder',
+      name: 'Solo',
       monthly: 12,
       annual: 8,
       annualTotal: 99,
@@ -69,7 +69,7 @@ export function UpgradeModal({ open, currentTier, onUpgrade, onClose }: UpgradeM
       annualTotal: 240,
       description: 'For teams up to 5 people. Shared decision history.',
       features: [
-        'Everything in Founder',
+        'Everything in Solo',
         'Up to 5 users',
         'Shared projects',
         'Collaborative decision logging',

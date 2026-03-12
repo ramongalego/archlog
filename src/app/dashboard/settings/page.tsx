@@ -143,7 +143,7 @@ function BillingSection({ tier }: { tier: string }) {
 
   const billingStatus = searchParams.get('billing');
   const isPaid = tier === 'pro' || tier === 'team';
-  const tierLabel = tier === 'team' ? 'Team' : tier === 'pro' ? 'Founder' : 'Free';
+  const tierLabel = tier === 'team' ? 'Team' : tier === 'pro' ? 'Solo' : 'Free';
 
   async function handleManage() {
     setManaging(true);

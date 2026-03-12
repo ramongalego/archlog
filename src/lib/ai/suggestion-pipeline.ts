@@ -66,12 +66,12 @@ confidence means how confident YOU are that this is a real decision:
 - medium: likely a decision but context is thin
 - low: might be a decision but could also be routine
 
-category is the best-fit category for the decision:
-- product: feature additions, removals, UX changes, business rules
-- pricing: pricing model, plan changes, billing
-- technical: architecture, technology choices, infrastructure, migrations
-- hiring: team structure, hiring strategy, roles
-- marketing: positioning, messaging, go-to-market
+category is the best-fit category — pick based on what DROVE the decision, not what it touches:
+- product: what the product does, features, UX, scope
+- pricing: tiers, plans, costs, what each tier gets, monetization, limits that differ by plan
+- technical: architecture, infrastructure, stack choices, performance (when not tied to pricing)
+- hiring: roles, team structure, hiring process
+- marketing: positioning, channels, messaging, growth
 - other: anything that doesn't fit the above
 
 If no decisions are found, return an empty array: []`,

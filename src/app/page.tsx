@@ -385,14 +385,14 @@ export default function LandingPage() {
               </Link>
             </div>
 
-            {/* Founder */}
+            {/* Solo */}
             <div className="rounded-xl border-2 border-gray-900 dark:border-white bg-white dark:bg-gray-950 px-6 py-6 relative">
               <div className="absolute -top-3 left-6">
                 <span className="inline-flex items-center rounded-full bg-gray-900 dark:bg-white px-3 py-0.5 text-xs font-semibold text-white dark:text-gray-900">
                   Popular
                 </span>
               </div>
-              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">Founder</p>
+              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">Solo</p>
               <p className="mt-2 flex items-baseline gap-1.5">
                 <span className="text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
                   ${annual ? '8' : '12'}
@@ -456,7 +456,7 @@ export default function LandingPage() {
               </p>
               <ul className="mt-6 space-y-3">
                 {[
-                  'Everything in Founder',
+                  'Everything in Solo',
                   'Up to 5 users',
                   'Shared projects',
                   'Collaborative decision logging',
