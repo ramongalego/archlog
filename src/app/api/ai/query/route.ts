@@ -25,10 +25,13 @@ export async function POST(request: Request) {
     .single()) as { data: Pick<User, 'subscription_tier'> | null };
 
   if (!profile || !canUseAiQuery(profile.subscription_tier)) {
-    return new Response(JSON.stringify({ error: 'AI query requires a paid plan. Upgrade to unlock.' }), {
-      status: 403,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify({ error: 'AI query requires a paid plan. Upgrade to unlock.' }),
+      {
+        status: 403,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
   }
 
   const body = await request.json();

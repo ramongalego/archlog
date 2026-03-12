@@ -5,8 +5,9 @@ import { PageHeader } from '@/components/ui/page-header';
 import { Card } from '@/components/ui/card';
 import { GitHubCard } from '@/components/integrations/github-card';
 import { GitLabCard } from '@/components/integrations/gitlab-card';
+import { NotionCard } from '@/components/integrations/notion-card';
 import { getActiveProjectId } from '@/lib/active-project';
-import type { GitHubConnection, GitLabConnection } from '@/types/decisions';
+import type { GitHubConnection, GitLabConnection, NotionConnection } from '@/types/decisions';
 
 export const metadata: Metadata = { title: 'Integrations' };
 
@@ -52,6 +53,18 @@ export default async function IntegrationsPage() {
     .eq('status', 'pending')
     .eq('source', 'github');
 
+  // Get Notion connection if it exists
+  const { data: notionConnection } = (await supabase
+    .from('notion_connections')
+    .select('id, notion_workspace_name, last_scan_at, last_scan_count')
+    .eq('user_id', user.id)
+    .single()) as {
+    data: Pick<
+      NotionConnection,
+      'id' | 'notion_workspace_name' | 'last_scan_at' | 'last_scan_count'
+    > | null;
+  };
+
   // Count pending suggestions from GitLab only
   const { count: gitlabPendingCount } = await supabase
     .from('suggested_decisions')
@@ -59,6 +72,14 @@ export default async function IntegrationsPage() {
     .eq('user_id', user.id)
     .eq('status', 'pending')
     .eq('source', 'gitlab');
+
+  // Count pending suggestions from Notion only
+  const { count: notionPendingCount } = await supabase
+    .from('suggested_decisions')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+    .eq('status', 'pending')
+    .eq('source', 'notion');
 
   // Fall back to default project if no active project
   let projectId = activeProjectId;
@@ -77,17 +98,44 @@ export default async function IntegrationsPage() {
       <PageHeader title="Integrations" />
 
       <div className="grid gap-4">
-        <GitHubCard
-          connection={githubConnection}
-          projectId={projectId}
-          pendingCount={githubPendingCount ?? 0}
-        />
-
-        <GitLabCard
-          connection={gitlabConnection}
-          projectId={projectId}
-          pendingCount={gitlabPendingCount ?? 0}
-        />
+        {/* Connected integrations first, then disconnected */}
+        {[
+          {
+            connected: !!githubConnection,
+            card: (
+              <GitHubCard
+                key="github"
+                connection={githubConnection}
+                projectId={projectId}
+                pendingCount={githubPendingCount ?? 0}
+              />
+            ),
+          },
+          {
+            connected: !!gitlabConnection,
+            card: (
+              <GitLabCard
+                key="gitlab"
+                connection={gitlabConnection}
+                projectId={projectId}
+                pendingCount={gitlabPendingCount ?? 0}
+              />
+            ),
+          },
+          {
+            connected: !!notionConnection,
+            card: (
+              <NotionCard
+                key="notion"
+                connection={notionConnection}
+                projectId={projectId}
+                pendingCount={notionPendingCount ?? 0}
+              />
+            ),
+          },
+        ]
+          .sort((a, b) => Number(b.connected) - Number(a.connected))
+          .map((item) => item.card)}
 
         {/* Placeholder cards for future integrations */}
         <Card className="flex items-center gap-3 opacity-50">

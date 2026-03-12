@@ -40,8 +40,7 @@ export async function createProject(formData: FormData): Promise<{ id?: string; 
 
   if (!canCreateProject(profile.subscription_tier, count ?? 0)) {
     return {
-      error:
-        'You have reached the project limit for your plan. Upgrade for unlimited projects.',
+      error: 'You have reached the project limit for your plan. Upgrade for unlimited projects.',
     };
   }
 

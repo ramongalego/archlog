@@ -55,8 +55,7 @@ export async function createDecision(formData: FormData): Promise<{ id?: string;
 
   if (!canCreateDecision(profile.subscription_tier, count ?? 0)) {
     return {
-      error:
-        'You have reached the decision limit for your plan. Upgrade for unlimited decisions.',
+      error: 'You have reached the decision limit for your plan. Upgrade for unlimited decisions.',
     };
   }
 

@@ -309,6 +309,39 @@ export type Database = {
         };
         Relationships: [];
       };
+      notion_connections: {
+        Row: {
+          id: string;
+          user_id: string;
+          access_token_encrypted: string;
+          notion_workspace_name: string;
+          last_scan_at: string | null;
+          last_scan_count: number | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          access_token_encrypted: string;
+          notion_workspace_name: string;
+          last_scan_at?: string | null;
+          last_scan_count?: number | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          access_token_encrypted?: string;
+          notion_workspace_name?: string;
+          last_scan_at?: string | null;
+          last_scan_count?: number | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       suggested_decisions: {
         Row: {
           id: string;

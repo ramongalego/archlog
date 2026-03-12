@@ -215,6 +215,22 @@ export const gitlabScanSchema = z.object({
   project_id: uuidSchema,
 });
 
+// --- Notion schemas ---
+
+export const notionScanSchema = z.object({
+  project_id: uuidSchema,
+  pages: z
+    .array(
+      z.object({
+        id: z.string().min(1),
+        object: z.literal('page'),
+        title: z.string().optional(),
+      })
+    )
+    .min(1, 'Select at least one page')
+    .max(5, 'Select up to 5 pages'),
+});
+
 // --- Helpers ---
 
 /** Parse FormData into a plain object, then validate with a Zod schema. */

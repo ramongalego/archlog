@@ -17,6 +17,7 @@ interface SuggestionsListProps {
 const SOURCE_LABELS: Record<string, string> = {
   github: 'GitHub PR',
   gitlab: 'GitLab MR',
+  notion: 'Notion',
   text: 'Text extract',
 };
 
@@ -141,7 +142,7 @@ export function SuggestionsList({ suggestions, projectId }: SuggestionsListProps
                 {dismissing === s.id ? 'Dismissing...' : 'Dismiss'}
               </Button>
               <Button size="sm" onClick={() => handleAccept(s)}>
-                Accept
+                Log
               </Button>
             </div>
           </div>
