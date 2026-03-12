@@ -2,19 +2,15 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { MarketingHeader } from '@/components/ui/marketing-header';
 
 export default function LandingPage() {
   const [annual, setAnnual] = useState(false);
 
   return (
     <div className="flex min-h-screen flex-col bg-white dark:bg-gray-950">
-      {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-gray-100 dark:border-gray-800/60 bg-white/80 dark:bg-gray-950/80 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-          <a href="#" className="text-lg font-bold tracking-tight text-gray-900 dark:text-gray-100">
-            ArchLog
-          </a>
+      <MarketingHeader
+        nav={
           <nav className="hidden sm:flex items-center gap-6">
             <a
               href="#how-it-works"
@@ -35,23 +31,8 @@ export default function LandingPage() {
               Pricing
             </a>
           </nav>
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <Link
-              href="/login"
-              className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/signup"
-              className="rounded-lg bg-gray-900 dark:bg-white px-4 py-2 text-sm font-medium text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors shadow-sm"
-            >
-              Get Started
-            </Link>
-          </div>
-        </div>
-      </header>
+        }
+      />
 
       {/* Hero */}
       <section className="px-6 py-24 sm:py-32">
