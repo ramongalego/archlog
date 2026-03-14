@@ -152,6 +152,7 @@ export function GitLabCard({ connection, projectId, pendingCount }: GitLabCardPr
               onChange={handleSelectProject}
               placeholder={loadingProjects ? 'Loading projects...' : 'Select a project'}
               disabled={loadingProjects}
+              loading={loadingProjects}
               options={projects.map((p) => ({
                 value: p.path_with_namespace,
                 label: `${p.path_with_namespace}${p.visibility === 'private' ? ' (private)' : ''}`,

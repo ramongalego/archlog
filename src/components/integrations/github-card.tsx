@@ -156,6 +156,7 @@ export function GitHubCard({ connection, projectId, pendingCount }: GitHubCardPr
               onChange={handleSelectRepo}
               placeholder={loadingRepos ? 'Loading repos...' : 'Select a repository'}
               disabled={loadingRepos}
+              loading={loadingRepos}
               options={repos.map((r) => ({
                 value: r.full_name,
                 label: `${r.full_name}${r.private ? ' (private)' : ''}`,

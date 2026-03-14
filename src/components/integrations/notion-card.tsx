@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import Link from 'next/link';
 import { formatRelativeDate } from '@/lib/utils';
 
 interface NotionPage {
@@ -34,7 +35,19 @@ export function NotionCard({ connection, projectId, pendingCount }: NotionCardPr
   const [scanProgress, setScanProgress] = useState({ current: 0, total: 0 });
   const [disconnecting, setDisconnecting] = useState(false);
   const [search, setSearch] = useState('');
+  const [showFallback, setShowFallback] = useState(false);
   const pagesCacheRef = useRef<NotionPage[] | null>(null);
+  const fallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearFallbackTimer = useCallback(() => {
+    if (fallbackTimerRef.current) {
+      clearTimeout(fallbackTimerRef.current);
+      fallbackTimerRef.current = null;
+    }
+  }, []);
+
+  // Clean up fallback timer on unmount
+  useEffect(() => clearFallbackTimer, [clearFallbackTimer]);
 
   // Fetch pages when connected, using cache if available
   useEffect(() => {
@@ -83,6 +96,9 @@ export function NotionCard({ connection, projectId, pendingCount }: NotionCardPr
       return;
     }
     setScanning(true);
+    setShowFallback(false);
+    clearFallbackTimer();
+    fallbackTimerRef.current = setTimeout(() => setShowFallback(true), 10_000);
     const total = selectedPages.length;
     setScanProgress({ current: 0, total });
 
@@ -106,7 +122,9 @@ export function NotionCard({ connection, projectId, pendingCount }: NotionCardPr
 
         if (res.status === 401) {
           toast.error(data.error || 'Notion token expired. Please reconnect.');
+          clearFallbackTimer();
           setScanning(false);
+          setShowFallback(false);
           setScanProgress({ current: 0, total: 0 });
           return;
         }
@@ -137,7 +155,9 @@ export function NotionCard({ connection, projectId, pendingCount }: NotionCardPr
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Scan failed');
     } finally {
+      clearFallbackTimer();
       setScanning(false);
+      setShowFallback(false);
       setScanProgress({ current: 0, total: 0 });
     }
   }
@@ -206,14 +226,39 @@ export function NotionCard({ connection, projectId, pendingCount }: NotionCardPr
               Pages{' '}
               <span className="font-normal text-gray-400 dark:text-gray-500">(select up to 5)</span>
             </label>
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={loadingPages ? 'Loading...' : 'Search pages...'}
-              disabled={loadingPages}
-              className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-1.5 text-base md:text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-gray-100/10"
-            />
+            <div className="relative">
+              {loadingPages && (
+                <div className="absolute left-3 top-1/2 -translate-y-1/2">
+                  <svg
+                    className="h-3.5 w-3.5 animate-spin text-gray-400 dark:text-gray-500"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                    />
+                  </svg>
+                </div>
+              )}
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={loadingPages ? 'Loading...' : 'Search pages...'}
+                disabled={loadingPages}
+                className={`w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 py-1.5 text-base md:text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-gray-100/10 ${loadingPages ? 'pl-8 pr-3' : 'px-3'}`}
+              />
+            </div>
             {!loadingPages && filteredPages.length > 0 && (
               <div className="mt-1 max-h-40 overflow-auto rounded-lg border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-900">
                 {filteredPages.map((page) => {
@@ -298,6 +343,23 @@ export function NotionCard({ connection, projectId, pendingCount }: NotionCardPr
               Disconnect
             </Button>
           </div>
+
+          {/* Delayed fallback message during long scans */}
+          {scanning && (
+            <p
+              className="text-xs text-gray-400 dark:text-gray-500 transition-opacity duration-500"
+              style={{ opacity: showFallback ? 1 : 0 }}
+            >
+              This is taking a while. If you&apos;d prefer, you can{' '}
+              <Link
+                href="/dashboard/decisions/extract"
+                className="underline text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+              >
+                paste your content as text
+              </Link>{' '}
+              instead.
+            </p>
+          )}
 
           {/* Last scan info */}
           {connection.last_scan_at && (
