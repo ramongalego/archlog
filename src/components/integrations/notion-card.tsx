@@ -212,7 +212,7 @@ export function NotionCard({ connection, projectId, pendingCount }: NotionCardPr
               onChange={(e) => setSearch(e.target.value)}
               placeholder={loadingPages ? 'Loading...' : 'Search pages...'}
               disabled={loadingPages}
-              className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-1.5 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-gray-100/10"
+              className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-1.5 text-base md:text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-gray-100/10"
             />
             {!loadingPages && filteredPages.length > 0 && (
               <div className="mt-1 max-h-40 overflow-auto rounded-lg border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-900">

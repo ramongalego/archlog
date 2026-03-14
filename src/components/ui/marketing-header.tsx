@@ -12,6 +12,7 @@ export function MarketingHeader({ nav }: MarketingHeaderProps) {
         <Link
           href="/"
           className="text-lg font-bold tracking-tight text-gray-900 dark:text-gray-100"
+          aria-label="ArchLog home"
         >
           ArchLog
         </Link>

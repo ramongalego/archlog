@@ -59,10 +59,10 @@ export function FilterBar({ filters, hasFilters, onFilterChange, onClear }: Filt
           value={filters.search}
           onChange={(e) => onFilterChange('search', e.target.value)}
           placeholder="Search decisions..."
-          className="block w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 pl-10 pr-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-gray-400 dark:focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-gray-100/10 transition-colors"
+          className="block w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 pl-10 pr-3 py-2 text-base md:text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-gray-400 dark:focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-gray-100/10 transition-colors"
         />
       </div>
-      <div className="flex flex-wrap items-end gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:flex md:flex-wrap items-end gap-3">
         <div>
           <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
             Category
@@ -72,7 +72,7 @@ export function FilterBar({ filters, hasFilters, onFilterChange, onClear }: Filt
             onChange={(val) => onFilterChange('category', val)}
             options={categoryOptions}
             placeholder="All"
-            className="w-36"
+            className="md:w-36"
           />
         </div>
 
@@ -85,7 +85,7 @@ export function FilterBar({ filters, hasFilters, onFilterChange, onClear }: Filt
             onChange={(val) => onFilterChange('outcomeStatus', val)}
             options={outcomeOptions}
             placeholder="All"
-            className="w-40"
+            className="md:w-40"
           />
         </div>
 
@@ -98,7 +98,7 @@ export function FilterBar({ filters, hasFilters, onFilterChange, onClear }: Filt
             onChange={(val) => onFilterChange('confidence', val)}
             options={confidenceOptions}
             placeholder="All"
-            className="w-28"
+            className="md:w-28"
           />
         </div>
 
@@ -114,7 +114,7 @@ export function FilterBar({ filters, hasFilters, onFilterChange, onClear }: Filt
             type="date"
             value={filters.dateFrom}
             onChange={(e) => onFilterChange('dateFrom', e.target.value)}
-            className="block rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-gray-400 dark:focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-gray-100/10 transition-colors"
+            className="block w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-base md:text-sm text-gray-900 dark:text-gray-100 focus:border-gray-400 dark:focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-gray-100/10 transition-colors"
           />
         </div>
 
@@ -130,7 +130,7 @@ export function FilterBar({ filters, hasFilters, onFilterChange, onClear }: Filt
             type="date"
             value={filters.dateTo}
             onChange={(e) => onFilterChange('dateTo', e.target.value)}
-            className="block rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-gray-400 dark:focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-gray-100/10 transition-colors"
+            className="block w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-base md:text-sm text-gray-900 dark:text-gray-100 focus:border-gray-400 dark:focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10 dark:focus:ring-gray-100/10 transition-colors"
           />
         </div>
       </div>

@@ -48,7 +48,7 @@ export function Dropdown({
         onClick={() => !disabled && setOpen(!open)}
         disabled={disabled}
         className={cn(
-          'cursor-pointer flex w-full items-center justify-between rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-left text-sm transition-all',
+          'cursor-pointer flex w-full items-center justify-between rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-left text-base md:text-sm transition-all',
           disabled
             ? 'cursor-not-allowed opacity-60'
             : 'text-gray-900 dark:text-gray-100 hover:border-gray-300 dark:hover:border-gray-600'

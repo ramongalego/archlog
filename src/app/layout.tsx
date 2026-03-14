@@ -14,13 +14,37 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://archlog.app';
+
 export const metadata: Metadata = {
   title: {
-    template: '%s · ArchLog',
-    default: 'ArchLog',
+    template: '%s | ArchLog',
+    default: 'ArchLog · Decision Memory for Teams',
   },
   description:
     'Log decisions as they happen. Track outcomes over time. Search your history with AI.',
+  metadataBase: new URL(siteUrl),
+  alternates: { canonical: '/' },
+  openGraph: {
+    type: 'website',
+    siteName: 'ArchLog',
+    title: 'ArchLog · Decision Memory for Teams',
+    description:
+      'Log decisions as they happen. Track outcomes over time. Search your history with AI.',
+    url: siteUrl,
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'ArchLog' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'ArchLog · Decision Memory for Teams',
+    description:
+      'Log decisions as they happen. Track outcomes over time. Search your history with AI.',
+    images: ['/og-image.png'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 // Inline script to set dark class before first paint (prevents flash)

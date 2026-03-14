@@ -35,7 +35,7 @@ function Toolbar({ editor }: { editor: ReturnType<typeof useEditor> }) {
   if (!editor) return null;
 
   return (
-    <div className="flex gap-1 border-b border-gray-100 dark:border-gray-800 px-2 py-2">
+    <div className="flex flex-wrap gap-1 border-b border-gray-100 dark:border-gray-800 px-2 py-2">
       <ToolbarButton
         active={editor.isActive('bold')}
         onClick={() => editor.chain().focus().toggleBold().run()}

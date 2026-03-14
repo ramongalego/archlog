@@ -3,12 +3,14 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { MarketingHeader } from '@/components/ui/marketing-header';
+import { LandingJsonLd } from '@/components/seo/json-ld';
 
 export default function LandingPage() {
   const [annual, setAnnual] = useState(false);
 
   return (
     <div className="flex min-h-screen flex-col bg-white dark:bg-gray-950">
+      <LandingJsonLd />
       <MarketingHeader
         nav={
           <nav className="hidden sm:flex items-center gap-6">
@@ -228,7 +230,7 @@ export default function LandingPage() {
           <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100 sm:text-3xl">
             Works where you already work
           </h2>
-          <div className="mt-16 flex items-center justify-center gap-10 sm:gap-14">
+          <div className="mt-16 flex flex-wrap items-center justify-center gap-8 sm:gap-10 md:gap-14">
             {[
               {
                 name: 'GitHub',
