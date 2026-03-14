@@ -110,7 +110,11 @@ function WorkspaceSwitcher() {
 
       const saved = getCookie('active_workspace') ?? 'personal';
       const valid = options.some((w) => w.id === saved);
-      setActiveValue(valid ? saved : 'personal');
+      const nextValue = valid ? saved : 'personal';
+      setActiveValue(nextValue);
+      if (!valid && saved !== 'personal') {
+        setCookie('active_workspace', 'personal');
+      }
 
       setLoading(false);
     }
@@ -154,18 +158,7 @@ function WorkspaceSwitcher() {
     });
   }
 
-  if (loading) {
-    return (
-      <div>
-        <p className="text-[10px] font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500 text-center mb-1">Team</p>
-        <div className="w-full animate-pulse">
-          <div className="h-[38px] rounded-lg bg-gray-100 dark:bg-gray-800" />
-        </div>
-      </div>
-    );
-  }
-
-  if (workspaces.length <= 1) return null;
+  if (loading || workspaces.length <= 1) return null;
 
   const activeLabel = workspaces.find((w) => w.id === activeValue)?.label ?? 'Personal';
   const activeType = workspaces.find((w) => w.id === activeValue)?.type ?? 'personal';
@@ -251,6 +244,7 @@ export function Sidebar() {
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [overdueCount, setOverdueCount] = useState(0);
+  const [pendingInviteCount, setPendingInviteCount] = useState(0);
 
   const [projectVersion, setProjectVersion] = useState(0);
 
@@ -295,12 +289,31 @@ export function Sidebar() {
       setOverdueCount(count ?? 0);
     }
 
+    async function fetchPendingInvites() {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user?.email) return;
+
+      const { count } = await supabase
+        .from('team_members')
+        .select('*', { count: 'exact', head: true })
+        .eq('email', user.email.toLowerCase())
+        .eq('status', 'pending');
+
+      setPendingInviteCount(count ?? 0);
+    }
+
     fetchOverdue();
+    fetchPendingInvites();
   }, [pathname, projectVersion]);
 
   async function handleSignOut() {
     const supabase = createClient();
     await supabase.auth.signOut();
+    clearCookie('active_workspace');
+    clearCookie('active_project');
     router.push('/login');
   }
 
@@ -352,6 +365,11 @@ export function Sidebar() {
               {item.href === '/dashboard/decisions' && overdueCount > 0 && (
                 <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1.5 text-[11px] font-semibold text-white">
                   {overdueCount}
+                </span>
+              )}
+              {item.href === '/dashboard/settings' && pendingInviteCount > 0 && (
+                <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-purple-500 px-1.5 text-[11px] font-semibold text-white">
+                  {pendingInviteCount}
                 </span>
               )}
             </Link>

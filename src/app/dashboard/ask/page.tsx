@@ -23,7 +23,12 @@ export default async function AskPage() {
     .eq('id', user.id)
     .single()) as { data: Pick<User, 'subscription_tier'> | null };
 
-  const isPro = profile?.subscription_tier === 'pro' || profile?.subscription_tier === 'team';
+  const workspace = await getActiveWorkspace();
+  const isInTeamWorkspace = workspace.type === 'team';
+  const isPro =
+    profile?.subscription_tier === 'pro' ||
+    profile?.subscription_tier === 'team' ||
+    isInTeamWorkspace;
   const activeProjectId = await getActiveProjectId();
 
   let activeProjectName = 'This project';
@@ -36,7 +41,6 @@ export default async function AskPage() {
     if (project) activeProjectName = project.name;
   }
 
-  const workspace = await getActiveWorkspace();
   let teamName: string | undefined;
   if (workspace.type === 'team') {
     const { data: team } = await supabase

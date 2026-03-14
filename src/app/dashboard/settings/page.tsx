@@ -22,6 +22,8 @@ import {
   leaveTeam,
   dissolveTeam,
   getTeamsForUser,
+  getPendingInvites,
+  acceptInviteById,
   type TeamMemberWithName,
 } from './team-actions';
 
@@ -526,13 +528,15 @@ function TeamSection({
               ))}
           </div>
 
-          <button
-            type="button"
-            onClick={() => handleLeave(team.id)}
-            className="cursor-pointer text-xs text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-          >
-            Leave team
-          </button>
+          <div className="flex justify-center">
+            <button
+              type="button"
+              onClick={() => handleLeave(team.id)}
+              className="cursor-pointer text-xs text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+            >
+              Leave team
+            </button>
+          </div>
         </Card>
       ))}
 
@@ -560,6 +564,74 @@ function TeamSection({
   );
 }
 
+interface PendingInvite {
+  id: string;
+  team_id: string;
+  team_name: string;
+  invited_at: string;
+}
+
+function PendingInvitationsSection({
+  invites: initialInvites,
+}: {
+  invites: PendingInvite[];
+}) {
+  const [invites, setInvites] = useState(initialInvites);
+  const [accepting, setAccepting] = useState<string | null>(null);
+
+  useEffect(() => {
+    setInvites(initialInvites);
+  }, [initialInvites]);
+
+  if (invites.length === 0) return null;
+
+  async function handleAccept(invite: PendingInvite) {
+    setAccepting(invite.id);
+    const result = await acceptInviteById(invite.id);
+    if (result.error) {
+      toast.error(result.error);
+    } else {
+      toast.success(`You have joined ${invite.team_name}.`);
+      setInvites((prev) => prev.filter((i) => i.id !== invite.id));
+      window.dispatchEvent(new Event('workspace-changed'));
+      window.dispatchEvent(new Event('teams-changed'));
+    }
+    setAccepting(null);
+  }
+
+  return (
+    <Card>
+      <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
+        Pending Invitations
+      </h2>
+      <div className="space-y-2">
+        {invites.map((invite) => (
+          <div
+            key={invite.id}
+            className="flex items-center justify-between py-2"
+          >
+            <div className="flex items-center gap-2">
+              <svg className="h-4 w-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                {invite.team_name}
+              </span>
+            </div>
+            <Button
+              size="sm"
+              onClick={() => handleAccept(invite)}
+              disabled={accepting === invite.id}
+            >
+              {accepting === invite.id ? 'Accepting...' : 'Accept'}
+            </Button>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
 export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -572,6 +644,7 @@ export default function SettingsPage() {
 
   const [ownedTeams, setOwnedTeams] = useState<(Team & { members: TeamMemberWithName[] })[]>([]);
   const [memberTeams, setMemberTeams] = useState<(Team & { members: TeamMemberWithName[] })[]>([]);
+  const [pendingInvites, setPendingInvites] = useState<PendingInvite[]>([]);
 
   useEffect(() => {
     async function loadSettings() {
@@ -588,9 +661,10 @@ export default function SettingsPage() {
         .eq('id', user.id)
         .single();
 
-      const [{ data: profile }, teams] = await Promise.all([
+      const [{ data: profile }, teams, pending] = await Promise.all([
         profilePromise as unknown as Promise<{ data: User | null }>,
         getTeamsForUser(),
+        getPendingInvites(),
       ]);
 
       if (profile) {
@@ -603,6 +677,7 @@ export default function SettingsPage() {
 
       setOwnedTeams(teams.owned);
       setMemberTeams(teams.memberships);
+      setPendingInvites(pending.invites);
 
       setLoading(false);
     }
@@ -661,7 +736,9 @@ export default function SettingsPage() {
 
       <BillingSection tier={tier} />
 
-      {tier === 'team' && (
+      <PendingInvitationsSection invites={pendingInvites} />
+
+      {(tier === 'team' || memberTeams.length > 0) && (
         <TeamSection tier={tier} initialOwned={ownedTeams} initialMemberships={memberTeams} />
       )}
 

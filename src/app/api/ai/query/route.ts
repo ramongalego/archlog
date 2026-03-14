@@ -18,14 +18,18 @@ export async function POST(request: Request) {
     });
   }
 
-  // Check subscription tier
+  // Check subscription tier and workspace context
   const { data: profile } = (await supabase
     .from('users')
     .select('subscription_tier')
     .eq('id', user.id)
     .single()) as { data: Pick<User, 'subscription_tier'> | null };
 
-  if (!profile || !canUseAiQuery(profile.subscription_tier)) {
+  // Determine workspace early — team workspace unlocks Ask for all members
+  const workspace = await getActiveWorkspace();
+  const isInTeamWorkspace = workspace.type === 'team';
+
+  if (!profile || (!canUseAiQuery(profile.subscription_tier) && !isInTeamWorkspace)) {
     return new Response(
       JSON.stringify({ error: 'AI query requires a paid plan. Upgrade to unlock.' }),
       {
@@ -46,16 +50,13 @@ export async function POST(request: Request) {
 
   const { question, project_id } = parsed.data;
 
-  // Cross-project query (no project_id) requires a paid plan with cross-project search
-  if (!project_id && !canSearchCrossProject(profile.subscription_tier)) {
+  // Cross-project query (no project_id) requires a paid plan or team workspace
+  if (!project_id && !canSearchCrossProject(profile.subscription_tier) && !isInTeamWorkspace) {
     return new Response(
       JSON.stringify({ error: 'Cross-project search requires a paid plan. Upgrade to unlock.' }),
       { status: 403, headers: { 'Content-Type': 'application/json' } }
     );
   }
-
-  // Determine workspace-scoped project IDs
-  const workspace = await getActiveWorkspace();
   let workspaceProjectIds: string[] = [];
 
   if (workspace.type === 'team') {

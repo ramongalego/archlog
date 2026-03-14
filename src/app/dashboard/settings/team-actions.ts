@@ -353,6 +353,88 @@ export async function acceptInvite(token: string): Promise<{ error?: string; tea
   return { teamId: payload.team_id };
 }
 
+export async function getPendingInvites(): Promise<{
+  invites: { id: string; team_id: string; team_name: string; invited_at: string }[];
+}> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user?.email) return { invites: [] };
+
+  const { data: pending } = (await supabase
+    .from('team_members')
+    .select('id, team_id, invited_at')
+    .eq('email', user.email.toLowerCase())
+    .eq('status', 'pending')) as {
+    data: Pick<TeamMember, 'id' | 'team_id' | 'invited_at'>[] | null;
+  };
+
+  if (!pending || pending.length === 0) return { invites: [] };
+
+  const teamIds = pending.map((p) => p.team_id);
+  const { data: teams } = (await supabase
+    .from('teams')
+    .select('id, name')
+    .in('id', teamIds)) as { data: Pick<Team, 'id' | 'name'>[] | null };
+
+  const teamMap = new Map<string, string>();
+  for (const t of teams ?? []) {
+    teamMap.set(t.id, t.name);
+  }
+
+  return {
+    invites: pending
+      .filter((p) => teamMap.has(p.team_id))
+      .map((p) => ({
+        id: p.id,
+        team_id: p.team_id,
+        team_name: teamMap.get(p.team_id)!,
+        invited_at: p.invited_at ?? new Date().toISOString(),
+      })),
+  };
+}
+
+export async function acceptInviteById(
+  memberId: string
+): Promise<{ error?: string; teamId?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: 'Please log in to accept this invitation' };
+
+  // Find the pending invite — RLS ensures only matching email rows are visible
+  const { data: member } = (await supabase
+    .from('team_members')
+    .select('id, team_id, email, status')
+    .eq('id', memberId)
+    .single()) as { data: Pick<TeamMember, 'id' | 'team_id' | 'email' | 'status'> | null };
+
+  if (!member) return { error: 'Invitation not found. It may have been revoked.' };
+  if (member.status === 'accepted')
+    return { error: 'You have already accepted this invitation', teamId: member.team_id };
+
+  // Defense in depth: verify email matches
+  if (user.email?.toLowerCase() !== member.email.toLowerCase()) {
+    return { error: 'This invitation was sent to a different email address' };
+  }
+
+  const { error } = (await supabase
+    .from('team_members')
+    .update({
+      user_id: user.id,
+      status: 'accepted',
+      accepted_at: new Date().toISOString(),
+    } as Partial<TeamMember>)
+    .eq('id', member.id)) as { error: { message: string } | null };
+
+  if (error) return { error: friendlyError(error.message) };
+  return { teamId: member.team_id };
+}
+
 export type TeamMemberWithName = TeamMember & { display_name: string | null };
 
 export async function getTeamsForUser(): Promise<{

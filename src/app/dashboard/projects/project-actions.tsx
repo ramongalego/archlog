@@ -237,26 +237,27 @@ export function ProjectActions({
         </form>
       </Card>
 
-      {tier === 'free' && (
-        <div className="flex flex-col items-end gap-0.5">
-          <span className="text-xs text-red-500 dark:text-red-400">
-            {optimisticPersonal.filter((p) => !p.is_archived).length}/1 Projects
-          </span>
-          <button
-            type="button"
-            onClick={() => setShowUpgrade(true)}
-            className="cursor-pointer text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 underline underline-offset-2 transition-colors"
-          >
-            Upgrade for unlimited
-          </button>
-        </div>
-      )}
-
       {/* Personal projects */}
       <section>
-        <h2 className="text-xs font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-3">
-          Personal projects
-        </h2>
+        <div className="flex items-end justify-between mb-3">
+          <h2 className="text-xs font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
+            Personal projects
+          </h2>
+          {tier === 'free' && (
+            <div className="flex flex-col items-end gap-0.5">
+              <span className="text-xs text-red-500 dark:text-red-400">
+                {optimisticPersonal.filter((p) => !p.is_archived).length}/1 Projects
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowUpgrade(true)}
+                className="cursor-pointer text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 underline underline-offset-2 transition-colors"
+              >
+                Upgrade for unlimited
+              </button>
+            </div>
+          )}
+        </div>
         <div className="space-y-3">
           {optimisticPersonal.length === 0 && (
             <p className="text-sm text-gray-400 dark:text-gray-500">No personal projects yet.</p>
