@@ -94,6 +94,7 @@ export function DecisionsContent({
     }
   }, [activeProjectId, doFetch]);
 
+
   function handleFilterChange(key: string, value: string | boolean | number) {
     const next = { ...filtersRef.current, [key]: value } as Filters;
     if (key !== 'page') next.page = 1;

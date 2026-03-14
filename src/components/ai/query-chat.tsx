@@ -18,10 +18,12 @@ export function QueryChat({
   isPro,
   activeProjectId,
   activeProjectName,
+  teamName,
 }: {
   isPro: boolean;
   activeProjectId?: string | null;
   activeProjectName?: string;
+  teamName?: string;
 }) {
   const [question, setQuestion] = useState('');
   const [response, setResponse] = useState('');
@@ -185,7 +187,9 @@ export function QueryChat({
             <span />
           )}
           <p className="text-xs text-gray-400 dark:text-gray-500">
-            {scope === 'project' ? `Searching in ${projectLabel}` : 'Searching across all projects'}
+            {scope === 'project'
+              ? `Searching in ${projectLabel}${teamName ? ` (${teamName})` : ''}`
+              : `Searching across all ${teamName ? `${teamName} ` : ''}projects`}
           </p>
         </div>
       </div>

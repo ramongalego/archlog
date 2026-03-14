@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { canUseAiQuery, canSearchCrossProject } from '@/lib/stripe/plans';
 import { queryDecisions } from '@/lib/ai/query';
 import { aiQuerySchema } from '@/lib/validation';
+import { getActiveWorkspace } from '@/lib/active-workspace';
 import type { User } from '@/types/decisions';
 
 export async function POST(request: Request) {
@@ -53,6 +54,27 @@ export async function POST(request: Request) {
     );
   }
 
+  // Determine workspace-scoped project IDs
+  const workspace = await getActiveWorkspace();
+  let workspaceProjectIds: string[] = [];
+
+  if (workspace.type === 'team') {
+    const { data: teamProjects } = await supabase
+      .from('projects')
+      .select('id')
+      .eq('team_id', workspace.teamId)
+      .eq('is_archived', false);
+    workspaceProjectIds = (teamProjects ?? []).map((p) => p.id);
+  } else {
+    const { data: personalProjects } = await supabase
+      .from('projects')
+      .select('id')
+      .eq('user_id', user.id)
+      .is('team_id', null)
+      .eq('is_archived', false);
+    workspaceProjectIds = (personalProjects ?? []).map((p) => p.id);
+  }
+
   // Stream the response as SSE
   const encoder = new TextEncoder();
 
@@ -63,6 +85,7 @@ export async function POST(request: Request) {
           question: question.trim(),
           projectId: project_id || undefined,
           userId: user.id,
+          workspaceProjectIds,
         });
 
         for await (const event of generator) {

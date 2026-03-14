@@ -14,6 +14,7 @@ import {
   parseFormData,
   parseTiptapJson,
 } from '@/lib/validation';
+import { getActiveWorkspace } from '@/lib/active-workspace';
 import type { User, Decision } from '@/types/decisions';
 
 export async function createDecision(formData: FormData): Promise<{ id?: string; error?: string }> {
@@ -123,12 +124,44 @@ export async function listDecisions(params: {
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
 
+  const workspace = await getActiveWorkspace();
+
   let query = supabase
     .from('decisions')
     .select('*', { count: 'exact' })
-    .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .range(from, to);
+
+  // In team workspace, show all decisions in team projects (RLS ensures access)
+  // In personal workspace, only show own decisions
+  if (workspace.type === 'team') {
+    // Filter to decisions in projects belonging to this team
+    const { data: teamProjects } = await supabase
+      .from('projects')
+      .select('id')
+      .eq('team_id', workspace.teamId);
+
+    const teamProjectIds = (teamProjects ?? []).map((p) => p.id);
+    if (teamProjectIds.length > 0) {
+      query = query.in('project_id', teamProjectIds);
+    } else {
+      return { decisions: [], total: 0 };
+    }
+  } else {
+    // Personal workspace: only decisions in personal projects (not team projects)
+    const { data: personalProjects } = await supabase
+      .from('projects')
+      .select('id')
+      .eq('user_id', user.id)
+      .is('team_id', null);
+
+    const personalProjectIds = (personalProjects ?? []).map((p) => p.id);
+    if (personalProjectIds.length > 0) {
+      query = query.in('project_id', personalProjectIds);
+    } else {
+      return { decisions: [], total: 0 };
+    }
+  }
 
   if (!params.showArchived) {
     query = query.eq('is_archived', false);
@@ -187,21 +220,21 @@ export async function recordOutcome(formData: FormData): Promise<{ error?: strin
 
   // If "still playing out", reset the review cycle using the decision's own period
   if (outcome_status === 'still_playing_out') {
+    // RLS ensures only accessible decisions are returned (own + team)
     const { data: decision } = (await supabase
       .from('decisions')
       .select('review_period_days')
       .eq('id', decision_id)
-      .eq('user_id', user.id)
       .single()) as { data: Pick<Decision, 'review_period_days'> | null };
 
     updateData.outcome_due_date = daysFromNow(decision?.review_period_days ?? 90);
   }
 
+  // RLS allows: own decisions + team owner can update any decision in their team projects
   const { error } = (await supabase
     .from('decisions')
     .update(updateData as Partial<Decision>)
-    .eq('id', decision_id)
-    .eq('user_id', user.id)) as { error: { message: string } | null };
+    .eq('id', decision_id)) as { error: { message: string } | null };
 
   if (error) return { error: friendlyError(error.message) };
 
@@ -254,11 +287,11 @@ export async function updateDecision(formData: FormData): Promise<{ id?: string;
     updateData.outcome_due_date = daysFromNow(review_period_days);
   }
 
+  // RLS allows: own decisions + team owner can update any decision in their team projects
   const { error } = (await supabase
     .from('decisions')
     .update(updateData)
-    .eq('id', id)
-    .eq('user_id', user.id)) as { error: { message: string } | null };
+    .eq('id', id)) as { error: { message: string } | null };
 
   if (error) return { error: friendlyError(error.message) };
 
@@ -279,11 +312,11 @@ export async function archiveDecision(id: string): Promise<{ error?: string }> {
 
   if (!user) return { error: 'Unauthorized' };
 
+  // RLS allows: own decisions + team owner can update any decision in their team projects
   const { error } = (await supabase
     .from('decisions')
     .update({ is_archived: true } as Partial<Decision>)
-    .eq('id', parsed.data.id)
-    .eq('user_id', user.id)) as { error: { message: string } | null };
+    .eq('id', parsed.data.id)) as { error: { message: string } | null };
 
   if (error) return { error: friendlyError(error.message) };
   return {};
@@ -300,11 +333,11 @@ export async function restoreDecision(id: string): Promise<{ error?: string }> {
 
   if (!user) return { error: 'Unauthorized' };
 
+  // RLS allows: own decisions + team owner can update any decision in their team projects
   const { error } = (await supabase
     .from('decisions')
     .update({ is_archived: false } as Partial<Decision>)
-    .eq('id', parsed.data.id)
-    .eq('user_id', user.id)) as { error: { message: string } | null };
+    .eq('id', parsed.data.id)) as { error: { message: string } | null };
 
   if (error) return { error: friendlyError(error.message) };
   return {};
@@ -321,22 +354,22 @@ export async function deleteDecision(id: string): Promise<{ error?: string }> {
 
   if (!user) return { error: 'Unauthorized' };
 
+  // RLS ensures only accessible decisions are returned (own + team)
   // Only allow deleting archived decisions
   const { data: decision } = (await supabase
     .from('decisions')
     .select('is_archived')
     .eq('id', parsed.data.id)
-    .eq('user_id', user.id)
     .single()) as { data: { is_archived: boolean } | null };
 
   if (!decision) return { error: 'Decision not found' };
   if (!decision.is_archived) return { error: 'Only archived decisions can be deleted' };
 
+  // RLS allows: own decisions + team owner can delete any decision in their team projects
   const { error } = (await supabase
     .from('decisions')
     .delete()
-    .eq('id', parsed.data.id)
-    .eq('user_id', user.id)) as { error: { message: string } | null };
+    .eq('id', parsed.data.id)) as { error: { message: string } | null };
 
   if (error) return { error: friendlyError(error.message) };
   return {};

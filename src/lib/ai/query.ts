@@ -37,6 +37,7 @@ export async function* queryDecisions(params: {
   question: string;
   projectId?: string;
   userId: string;
+  workspaceProjectIds: string[];
 }): AsyncGenerator<QueryEvent> {
   const supabase = await createClient();
 
@@ -52,6 +53,7 @@ export async function* queryDecisions(params: {
       match_count: 10,
       p_user_id: params.userId,
       p_project_id: params.projectId ?? null,
+      p_project_ids: params.workspaceProjectIds,
     });
 
     if (error) {
@@ -70,19 +72,25 @@ export async function* queryDecisions(params: {
       .select(
         'id, title, why, context, confidence, category, outcome_status, outcome_notes, created_at'
       )
-      .eq('user_id', params.userId)
       .eq('is_archived', false)
       .order('created_at', { ascending: false })
       .limit(10);
 
     if (params.projectId) {
       query = query.eq('project_id', params.projectId);
+    } else if (params.workspaceProjectIds.length > 0) {
+      query = query.in('project_id', params.workspaceProjectIds);
+    } else {
+      // No projects in this workspace
+      decisions = [];
     }
 
-    const { data: fallbackDecisions } = (await query) as {
-      data: MatchedDecision[] | null;
-    };
-    decisions = fallbackDecisions ?? [];
+    if (params.workspaceProjectIds.length > 0 || params.projectId) {
+      const { data: fallbackDecisions } = (await query) as {
+        data: MatchedDecision[] | null;
+      };
+      decisions = fallbackDecisions ?? [];
+    }
   }
 
   if (decisions.length === 0) {

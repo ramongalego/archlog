@@ -11,6 +11,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { DecisionList } from '@/components/decisions/decision-card';
 import { SuggestionsBanner } from '@/components/integrations/suggestions-banner';
 import { getActiveProjectId } from '@/lib/active-project';
+import { getActiveWorkspace } from '@/lib/active-workspace';
 import type { DecisionCardData } from '@/components/decisions/decision-card';
 import type { Decision } from '@/types/decisions';
 import { daysUntil } from '@/lib/utils';
@@ -26,15 +27,46 @@ export default async function DashboardPage() {
   if (!user) redirect('/login');
 
   const activeProjectId = await getActiveProjectId();
+  const workspace = await getActiveWorkspace();
 
-  // Recent decisions - scoped to active project
+  // Determine project scope based on workspace
+  let scopedProjectIds: string[] = [];
+  if (workspace.type === 'team') {
+    const { data: teamProjects } = await supabase
+      .from('projects')
+      .select('id')
+      .eq('team_id', workspace.teamId);
+    scopedProjectIds = (teamProjects ?? []).map((p) => p.id);
+  } else {
+    const { data: personalProjects } = await supabase
+      .from('projects')
+      .select('id')
+      .eq('user_id', user.id)
+      .is('team_id', null);
+    scopedProjectIds = (personalProjects ?? []).map((p) => p.id);
+  }
+
+  function applyWorkspaceFilter<T extends { eq: (col: string, val: string) => T; in: (col: string, vals: string[]) => T }>(
+    query: T,
+    projectIdCol = 'project_id'
+  ): T {
+    if (scopedProjectIds.length > 0) {
+      return query.in(projectIdCol, scopedProjectIds);
+    }
+    // No projects — use impossible ID to return empty results
+    return query.eq(projectIdCol, '00000000-0000-0000-0000-000000000000');
+  }
+
+  // Recent decisions - scoped to active project/workspace
   let recentQuery = supabase
     .from('decisions')
     .select('id, title, category, confidence, outcome_status, outcome_due_date, created_at')
-    .eq('user_id', user.id)
     .eq('is_archived', false)
     .order('created_at', { ascending: false })
     .limit(5);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  recentQuery = applyWorkspaceFilter(recentQuery as any) as typeof recentQuery;
 
   if (activeProjectId) {
     recentQuery = recentQuery.eq('project_id', activeProjectId);
@@ -44,16 +76,18 @@ export default async function DashboardPage() {
     data: DecisionCardData[] | null;
   };
 
-  // Decisions due for review - scoped to active project
+  // Decisions due for review - scoped to active project/workspace
   let reviewQuery = supabase
     .from('decisions')
     .select('id, title, outcome_due_date, created_at')
-    .eq('user_id', user.id)
     .eq('is_archived', false)
     .in('outcome_status', ['pending', 'still_playing_out'])
     .lte('outcome_due_date', new Date().toISOString())
     .order('outcome_due_date', { ascending: true })
     .limit(5);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  reviewQuery = applyWorkspaceFilter(reviewQuery as any) as typeof reviewQuery;
 
   if (activeProjectId) {
     reviewQuery = reviewQuery.eq('project_id', activeProjectId);
@@ -78,8 +112,10 @@ export default async function DashboardPage() {
   let statsQuery = supabase
     .from('decisions')
     .select('outcome_status')
-    .eq('user_id', user.id)
     .eq('is_archived', false);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  statsQuery = applyWorkspaceFilter(statsQuery as any) as typeof statsQuery;
 
   if (activeProjectId) {
     statsQuery = statsQuery.eq('project_id', activeProjectId);

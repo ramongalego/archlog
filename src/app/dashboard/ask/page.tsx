@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { QueryChat } from '@/components/ai/query-chat';
 import { PageHeader } from '@/components/ui/page-header';
 import { getActiveProjectId } from '@/lib/active-project';
+import { getActiveWorkspace } from '@/lib/active-workspace';
 import type { User } from '@/types/decisions';
 
 export const metadata: Metadata = { title: 'Ask' };
@@ -35,6 +36,17 @@ export default async function AskPage() {
     if (project) activeProjectName = project.name;
   }
 
+  const workspace = await getActiveWorkspace();
+  let teamName: string | undefined;
+  if (workspace.type === 'team') {
+    const { data: team } = await supabase
+      .from('teams')
+      .select('name')
+      .eq('id', workspace.teamId)
+      .single();
+    teamName = team?.name ?? undefined;
+  }
+
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
@@ -49,6 +61,7 @@ export default async function AskPage() {
         isPro={isPro}
         activeProjectId={activeProjectId}
         activeProjectName={activeProjectName}
+        teamName={teamName}
       />
     </div>
   );

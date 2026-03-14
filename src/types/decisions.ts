@@ -11,6 +11,10 @@ export type GitLabConnection = Database['public']['Tables']['gitlab_connections'
 export type NotionConnection = Database['public']['Tables']['notion_connections']['Row'];
 export type SuggestedDecision = Database['public']['Tables']['suggested_decisions']['Row'];
 export type SuggestionStatus = Database['public']['Enums']['suggestion_status'];
+export type Team = Database['public']['Tables']['teams']['Row'];
+export type TeamMember = Database['public']['Tables']['team_members']['Row'];
+export type TeamRole = Database['public']['Enums']['team_role'];
+export type TeamMemberStatus = Database['public']['Enums']['team_member_status'];
 
 // Enum types
 export type ConfidenceLevel = Database['public']['Enums']['confidence_level'];

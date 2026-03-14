@@ -35,14 +35,41 @@ export default async function DecisionDetailPage({ params }: { params: Promise<{
 
   if (!user) redirect('/login');
 
+  // RLS ensures only accessible decisions are returned (own + team)
   const { data: decision } = (await supabase
     .from('decisions')
     .select('*')
     .eq('id', id)
-    .eq('user_id', user.id)
     .single()) as { data: Decision | null };
 
   if (!decision) notFound();
+
+  // Check if this is a team project and get author info
+  const { data: project } = await supabase
+    .from('projects')
+    .select('team_id')
+    .eq('id', decision.project_id)
+    .single();
+
+  const isTeamProject = project?.team_id != null;
+  let authorName: string | null = null;
+
+  if (isTeamProject) {
+    const { data: author } = await supabase
+      .from('users')
+      .select('display_name, email')
+      .eq('id', decision.user_id)
+      .single();
+
+    authorName = author?.display_name ?? author?.email ?? null;
+  }
+
+  // Determine if current user can edit/delete (own decision or team owner)
+  const isOwn = decision.user_id === user.id;
+  const isTeamOwner = isTeamProject
+    ? (await supabase.from('teams').select('owner_id').eq('id', project!.team_id!).single()).data?.owner_id === user.id
+    : false;
+  const canModify = isOwn || isTeamOwner;
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -53,10 +80,13 @@ export default async function DecisionDetailPage({ params }: { params: Promise<{
           </h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             {formatDate(decision.created_at)}
+            {authorName && (
+              <span> &middot; by {authorName}</span>
+            )}
           </p>
         </div>
         <div className="flex shrink-0 items-center">
-          {!decision.is_archived && (
+          {!decision.is_archived && canModify && (
             <Link href={`/dashboard/decisions/${decision.id}/edit`}>
               <Button variant="secondary" size="sm">
                 <span className="flex items-center gap-1">
@@ -76,8 +106,12 @@ export default async function DecisionDetailPage({ params }: { params: Promise<{
               </Button>
             </Link>
           )}
-          <ArchiveButton decisionId={decision.id} isArchived={decision.is_archived} />
-          {decision.is_archived && <DeleteButton decisionId={decision.id} variant="ghost" />}
+          {canModify && (
+            <ArchiveButton decisionId={decision.id} isArchived={decision.is_archived} />
+          )}
+          {decision.is_archived && canModify && (
+            <DeleteButton decisionId={decision.id} variant="ghost" />
+          )}
         </div>
       </div>
 

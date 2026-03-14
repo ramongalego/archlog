@@ -48,31 +48,34 @@ export type Database = {
       projects: {
         Row: {
           id: string;
-          user_id: string;
+          user_id: string | null;
           name: string;
           description: string | null;
           is_default: boolean;
           is_archived: boolean;
+          team_id: string | null;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id?: string;
-          user_id: string;
+          user_id?: string | null;
           name: string;
           description?: string | null;
           is_default?: boolean;
           is_archived?: boolean;
+          team_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           id?: string;
-          user_id?: string;
+          user_id?: string | null;
           name?: string;
           description?: string | null;
           is_default?: boolean;
           is_archived?: boolean;
+          team_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -342,6 +345,63 @@ export type Database = {
         };
         Relationships: [];
       };
+      teams: {
+        Row: {
+          id: string;
+          name: string;
+          owner_id: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          owner_id: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          owner_id?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      team_members: {
+        Row: {
+          id: string;
+          team_id: string;
+          user_id: string | null;
+          email: string;
+          role: 'owner' | 'member';
+          status: 'pending' | 'accepted';
+          invited_at: string;
+          accepted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          team_id: string;
+          user_id?: string | null;
+          email: string;
+          role?: 'owner' | 'member';
+          status?: 'pending' | 'accepted';
+          invited_at?: string;
+          accepted_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          team_id?: string;
+          user_id?: string | null;
+          email?: string;
+          role?: 'owner' | 'member';
+          status?: 'pending' | 'accepted';
+          invited_at?: string;
+          accepted_at?: string | null;
+        };
+        Relationships: [];
+      };
       suggested_decisions: {
         Row: {
           id: string;
@@ -439,6 +499,8 @@ export type Database = {
       outcome_status: 'pending' | 'vindicated' | 'reversed' | 'still_playing_out';
       subscription_tier: 'free' | 'pro' | 'team';
       suggestion_status: 'pending' | 'accepted' | 'dismissed';
+      team_role: 'owner' | 'member';
+      team_member_status: 'pending' | 'accepted';
     };
     CompositeTypes: Record<string, never>;
   };

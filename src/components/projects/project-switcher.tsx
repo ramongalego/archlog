@@ -36,13 +36,24 @@ export function ProjectSwitcher() {
 
       if (!user || cancelled) return;
 
-      const { data } = (await supabase
+      // Read active workspace from cookie
+      const workspaceCookie = getCookie('active_workspace') ?? 'personal';
+
+      let query = supabase
         .from('projects')
         .select('id, name')
-        .eq('user_id', user.id)
         .eq('is_archived', false)
         .order('is_default', { ascending: false })
-        .order('name')) as { data: Pick<Project, 'id' | 'name'>[] | null };
+        .order('name');
+
+      if (workspaceCookie.startsWith('team:')) {
+        const teamId = workspaceCookie.slice(5);
+        query = query.eq('team_id', teamId);
+      } else {
+        query = query.eq('user_id', user.id).is('team_id', null);
+      }
+
+      const { data } = (await query) as { data: Pick<Project, 'id' | 'name'>[] | null };
 
       if (cancelled) return;
 
@@ -51,7 +62,14 @@ export function ProjectSwitcher() {
 
         const saved = getCookie('active_project');
         const valid = data.some((p) => p.id === saved);
-        setActiveId(valid && saved ? saved : data[0].id);
+        const nextId = valid && saved ? saved : data[0].id;
+        setActiveId(nextId);
+        if (!valid) {
+          setCookie('active_project', nextId);
+        }
+      } else {
+        setProjects([]);
+        setActiveId('');
       }
 
       setLoading(false);
@@ -59,8 +77,18 @@ export function ProjectSwitcher() {
 
     load();
 
+    const workspaceHandler = () => {
+      setLoading(true);
+      load();
+    };
+    const projectHandler = () => load();
+    window.addEventListener('workspace-changed', workspaceHandler);
+    window.addEventListener('project-changed', projectHandler);
+
     return () => {
       cancelled = true;
+      window.removeEventListener('workspace-changed', workspaceHandler);
+      window.removeEventListener('project-changed', projectHandler);
     };
   }, [pathname]);
 

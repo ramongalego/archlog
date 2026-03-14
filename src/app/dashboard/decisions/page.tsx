@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { listDecisions } from './actions';
 import { DecisionsContent } from './decisions-content';
 import { getActiveProjectId } from '@/lib/active-project';
+import { getActiveWorkspace } from '@/lib/active-workspace';
 import type { DecisionCategory, OutcomeStatus, ConfidenceLevel } from '@/types/decisions';
 import type { DecisionCardData } from '@/components/decisions/decision-card';
 import type { User } from '@/types/decisions';
@@ -24,6 +25,8 @@ export default async function DecisionsPage({
 
   const params = await searchParams;
   const activeProjectId = await getActiveProjectId();
+  const workspace = await getActiveWorkspace();
+  const workspaceKey = workspace.type === 'team' ? `team:${workspace.teamId}` : 'personal';
 
   const search = typeof params.q === 'string' ? params.q : '';
   const category = typeof params.category === 'string' ? params.category : '';
@@ -80,6 +83,7 @@ export default async function DecisionsPage({
 
   return (
     <DecisionsContent
+      key={`${workspaceKey}:${activeProjectId ?? 'all'}`}
       activeProjectId={activeProjectId}
       initialDecisions={decisions as DecisionCardData[]}
       initialTotal={total}

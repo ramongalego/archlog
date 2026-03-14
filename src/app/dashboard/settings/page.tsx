@@ -12,7 +12,22 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { PageHeader } from '@/components/ui/page-header';
 import { UpgradeModal } from '@/components/ui/upgrade-modal';
-import type { User } from '@/types/decisions';
+import { ConfirmModal } from '@/components/ui/confirm-modal';
+import type { User, Team } from '@/types/decisions';
+import {
+  createTeam,
+  renameTeam,
+  inviteTeamMember,
+  removeTeamMember,
+  leaveTeam,
+  dissolveTeam,
+  getTeamsForUser,
+  type TeamMemberWithName,
+} from './team-actions';
+
+function resetWorkspaceCookie() {
+  document.cookie = 'active_workspace=personal;path=/;max-age=31536000';
+}
 
 const COMMON_TIMEZONES: { value: string; label: string }[] = [
   { value: 'Pacific/Midway', label: 'UTC-11:00 - American Samoa' },
@@ -217,6 +232,334 @@ function BillingSection({ tier }: { tier: string }) {
   );
 }
 
+function TeamSection({
+  tier,
+  initialOwned,
+  initialMemberships,
+}: {
+  tier: string;
+  initialOwned: (Team & { members: TeamMemberWithName[] })[];
+  initialMemberships: (Team & { members: TeamMemberWithName[] })[];
+}) {
+  const [owned, setOwned] = useState(initialOwned);
+  const [memberships, setMemberships] = useState(initialMemberships);
+  const [newTeamName, setNewTeamName] = useState('');
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [creating, setCreating] = useState(false);
+  const [inviting, setInviting] = useState<string | null>(null);
+
+  async function loadTeams() {
+    const result = await getTeamsForUser();
+    setOwned(result.owned);
+    setMemberships(result.memberships);
+  }
+
+  async function handleCreateTeam(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newTeamName.trim()) return;
+    setCreating(true);
+    const result = await createTeam(newTeamName.trim());
+    if (result.error) {
+      toast.error(result.error);
+    } else {
+      toast.success('Team created.');
+      setNewTeamName('');
+      window.dispatchEvent(new Event('teams-changed'));
+      await loadTeams();
+    }
+    setCreating(false);
+  }
+
+  async function handleInvite(teamId: string) {
+    if (!inviteEmail.trim()) return;
+    setInviting(teamId);
+    const result = await inviteTeamMember(teamId, inviteEmail.trim());
+    if (result.error) {
+      toast.error(result.error);
+    } else {
+      toast.success('Invitation sent.');
+      setInviteEmail('');
+      await loadTeams();
+    }
+    setInviting(null);
+  }
+
+  const [removing, setRemoving] = useState<string | null>(null);
+
+  async function handleRemove(teamId: string, memberId: string) {
+    setRemoving(memberId);
+    const result = await removeTeamMember(teamId, memberId);
+    if (result.error) {
+      toast.error(result.error);
+    } else {
+      toast.success('Member removed.');
+      await loadTeams();
+    }
+    setRemoving(null);
+  }
+
+  async function handleLeave(teamId: string) {
+    const result = await leaveTeam(teamId);
+    if (result.error) {
+      toast.error(result.error);
+    } else {
+      toast.success('You left the team.');
+      resetWorkspaceCookie();
+      window.dispatchEvent(new Event('workspace-changed'));
+      window.dispatchEvent(new Event('teams-changed'));
+      await loadTeams();
+    }
+  }
+
+  const [editingName, setEditingName] = useState<string | null>(null);
+  const [editNameValue, setEditNameValue] = useState('');
+  const [savingName, setSavingName] = useState(false);
+  const [dissolveTarget, setDissolveTarget] = useState<string | null>(null);
+
+  async function handleRename(teamId: string) {
+    if (!editNameValue.trim()) return;
+    setSavingName(true);
+    const result = await renameTeam(teamId, editNameValue.trim());
+    if (result.error) {
+      toast.error(result.error);
+    } else {
+      toast.success('Team renamed.');
+      window.dispatchEvent(new Event('teams-changed'));
+      await loadTeams();
+    }
+    setSavingName(false);
+    setEditingName(null);
+  }
+
+  async function handleDissolve(teamId: string) {
+    setDissolveTarget(null);
+    const result = await dissolveTeam(teamId);
+    if (result.error) {
+      toast.error(result.error);
+    } else {
+      toast.success('Team dissolved.');
+      resetWorkspaceCookie();
+      window.dispatchEvent(new Event('workspace-changed'));
+      window.dispatchEvent(new Event('teams-changed'));
+      await loadTeams();
+    }
+  }
+
+  return (
+    <>
+      {/* Teams you own */}
+      {owned.map((team) => (
+        <Card key={team.id}>
+          <div className="mb-4">
+            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
+              Team
+            </p>
+            {editingName === team.id ? (
+              <form
+                onSubmit={(e) => { e.preventDefault(); handleRename(team.id); }}
+                className="flex items-center gap-2"
+              >
+                <Input
+                  value={editNameValue}
+                  onChange={(e) => setEditNameValue(e.target.value)}
+                  className="text-lg font-semibold"
+                  autoFocus
+                  disabled={savingName}
+                />
+                <Button size="sm" type="submit" disabled={savingName || !editNameValue.trim()}>
+                  {savingName ? 'Saving...' : 'Save'}
+                </Button>
+                <button
+                  type="button"
+                  onClick={() => setEditingName(null)}
+                  className="cursor-pointer text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                >
+                  Cancel
+                </button>
+              </form>
+            ) : (
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  {team.name}
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => { setEditingName(team.id); setEditNameValue(team.name); }}
+                  className="cursor-pointer text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                >
+                  <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-2 mb-4">
+            <div className="flex items-center gap-2">
+              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                Members
+              </p>
+              <span
+                className={`text-xs ${
+                  team.members.length >= 5
+                    ? 'text-red-500 dark:text-red-400'
+                    : 'text-gray-400 dark:text-gray-500'
+                }`}
+              >
+                {team.members.length}/5
+              </span>
+            </div>
+            {team.members.map((member) => (
+              <div
+                key={member.id}
+                className="flex items-center justify-between py-1.5 text-sm"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-700 dark:text-gray-300">
+                    {member.status === 'accepted' && member.display_name
+                      ? member.display_name
+                      : member.email}
+                  </span>
+                  <Badge
+                    className={
+                      member.role === 'owner'
+                        ? 'bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400'
+                        : member.status === 'pending'
+                          ? 'bg-yellow-50 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400'
+                          : 'bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+                    }
+                  >
+                    {member.role === 'owner'
+                      ? 'Owner'
+                      : member.status === 'pending'
+                        ? 'Pending'
+                        : 'Member'}
+                  </Badge>
+                </div>
+                {member.role !== 'owner' && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemove(team.id, member.id)}
+                    disabled={removing === member.id}
+                    className="cursor-pointer text-xs text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 disabled:opacity-50"
+                  >
+                    {removing === member.id ? 'Removing...' : 'Remove'}
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {team.members.length < 5 ? (
+            <div className="flex items-center gap-2 mb-4">
+              <Input
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                placeholder="Email address"
+                className="flex-1"
+              />
+              <Button
+                size="sm"
+                onClick={() => handleInvite(team.id)}
+                disabled={inviting === team.id}
+              >
+                {inviting === team.id ? 'Sending...' : 'Invite'}
+              </Button>
+            </div>
+          ) : (
+            <p className="text-xs text-gray-400 dark:text-gray-500 my-6 text-center">
+              Team is at the 5-member limit. Remove a member to invite someone new.
+            </p>
+          )}
+
+          <div className="flex justify-center">
+            <button
+              type="button"
+              onClick={() => setDissolveTarget(team.id)}
+              className="cursor-pointer text-xs text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+            >
+              Dissolve team
+            </button>
+          </div>
+          <ConfirmModal
+            open={dissolveTarget === team.id}
+            title="Dissolve this team?"
+            description="This will permanently delete all team projects and their decisions. All members will be removed. This action cannot be undone."
+            confirmLabel="Dissolve team"
+            variant="danger"
+            onConfirm={() => handleDissolve(team.id)}
+            onCancel={() => setDissolveTarget(null)}
+          />
+        </Card>
+      ))}
+
+      {/* Teams you're a member of */}
+      {memberships.map((team) => (
+        <Card key={team.id}>
+          <div className="mb-4">
+            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
+              Team
+            </p>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              {team.name}
+            </h2>
+          </div>
+
+          <div className="space-y-2 mb-4">
+            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              Members
+            </p>
+            {team.members
+              .filter((m) => m.status === 'accepted')
+              .map((member) => (
+                <div key={member.id} className="flex items-center gap-2 py-1.5 text-sm">
+                  <span className="text-gray-700 dark:text-gray-300">
+                    {member.display_name || member.email}
+                  </span>
+                  {member.role === 'owner' && (
+                    <Badge className="bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
+                      Owner
+                    </Badge>
+                  )}
+                </div>
+              ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => handleLeave(team.id)}
+            className="cursor-pointer text-xs text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+          >
+            Leave team
+          </button>
+        </Card>
+      ))}
+
+      {/* Create team form (show for team tier users who don't own a team yet) */}
+      {owned.length === 0 && tier === 'team' && (
+        <Card>
+          <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Team</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+            Create a team to share projects and collaborate on decisions.
+          </p>
+          <form onSubmit={handleCreateTeam} className="flex items-center gap-2">
+            <Input
+              value={newTeamName}
+              onChange={(e) => setNewTeamName(e.target.value)}
+              placeholder="Team name"
+              className="flex-1"
+            />
+            <Button type="submit" size="sm" disabled={creating}>
+              {creating ? 'Creating...' : 'Create team'}
+            </Button>
+          </form>
+        </Card>
+      )}
+    </>
+  );
+}
+
 export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -227,6 +570,9 @@ export default function SettingsPage() {
   const [digestOptedIn, setDigestOptedIn] = useState(true);
   const [timezone, setTimezone] = useState('UTC');
 
+  const [ownedTeams, setOwnedTeams] = useState<(Team & { members: TeamMemberWithName[] })[]>([]);
+  const [memberTeams, setMemberTeams] = useState<(Team & { members: TeamMemberWithName[] })[]>([]);
+
   useEffect(() => {
     async function loadSettings() {
       const supabase = createClient();
@@ -236,11 +582,16 @@ export default function SettingsPage() {
 
       if (!user) return;
 
-      const { data: profile } = (await supabase
+      const profilePromise = supabase
         .from('users')
         .select('display_name, default_review_days, digest_opted_in, timezone, subscription_tier')
         .eq('id', user.id)
-        .single()) as { data: User | null };
+        .single();
+
+      const [{ data: profile }, teams] = await Promise.all([
+        profilePromise as unknown as Promise<{ data: User | null }>,
+        getTeamsForUser(),
+      ]);
 
       if (profile) {
         setDisplayName(profile.display_name ?? '');
@@ -249,6 +600,9 @@ export default function SettingsPage() {
         setTimezone(profile.timezone);
         setTier(profile.subscription_tier);
       }
+
+      setOwnedTeams(teams.owned);
+      setMemberTeams(teams.memberships);
 
       setLoading(false);
     }
@@ -306,6 +660,10 @@ export default function SettingsPage() {
       <PageHeader title="Settings" />
 
       <BillingSection tier={tier} />
+
+      {tier === 'team' && (
+        <TeamSection tier={tier} initialOwned={ownedTeams} initialMemberships={memberTeams} />
+      )}
 
       <Card>
         <form onSubmit={handleSubmit} className="space-y-4">

@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { PageHeader } from '@/components/ui/page-header';
 import { Card } from '@/components/ui/card';
 import { getActiveProjectId } from '@/lib/active-project';
+import { getActiveWorkspace } from '@/lib/active-workspace';
 import { formatRelativeDate } from '@/lib/utils';
 import {
   CONFIDENCE_LABELS,
@@ -59,12 +60,41 @@ export default async function AnalyticsPage() {
   if (!user) redirect('/login');
 
   const activeProjectId = await getActiveProjectId();
+  const workspace = await getActiveWorkspace();
 
   let query = supabase
     .from('decisions')
     .select('confidence, category, outcome_status, created_at, outcome_due_date')
-    .eq('user_id', user.id)
     .eq('is_archived', false);
+
+  if (workspace.type === 'team') {
+    // Show decisions across all team projects
+    const { data: teamProjects } = await supabase
+      .from('projects')
+      .select('id')
+      .eq('team_id', workspace.teamId);
+
+    const teamProjectIds = (teamProjects ?? []).map((p) => p.id);
+    if (teamProjectIds.length > 0) {
+      query = query.in('project_id', teamProjectIds);
+    } else {
+      query = query.eq('project_id', '00000000-0000-0000-0000-000000000000');
+    }
+  } else {
+    // Personal workspace: only decisions in personal projects
+    const { data: personalProjects } = await supabase
+      .from('projects')
+      .select('id')
+      .eq('user_id', user.id)
+      .is('team_id', null);
+
+    const personalProjectIds = (personalProjects ?? []).map((p) => p.id);
+    if (personalProjectIds.length > 0) {
+      query = query.in('project_id', personalProjectIds);
+    } else {
+      query = query.eq('project_id', '00000000-0000-0000-0000-000000000000');
+    }
+  }
 
   if (activeProjectId) {
     query = query.eq('project_id', activeProjectId);
