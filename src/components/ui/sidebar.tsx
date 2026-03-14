@@ -90,16 +90,11 @@ function WorkspaceSwitcher() {
         .eq('user_id', user.id)
         .eq('status', 'accepted');
 
-      const options: WorkspaceOption[] = [
-        { id: 'personal', label: 'Personal', type: 'personal' },
-      ];
+      const options: WorkspaceOption[] = [{ id: 'personal', label: 'Personal', type: 'personal' }];
 
       if (memberships && memberships.length > 0) {
         const teamIds = memberships.map((m) => m.team_id);
-        const { data: teams } = await supabase
-          .from('teams')
-          .select('id, name')
-          .in('id', teamIds);
+        const { data: teams } = await supabase.from('teams').select('id, name').in('id', teamIds);
 
         for (const team of teams ?? []) {
           options.push({ id: `team:${team.id}`, label: team.name, type: 'team' });
@@ -165,75 +160,154 @@ function WorkspaceSwitcher() {
 
   return (
     <div>
-      <p className="text-[10px] font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500 text-center mb-1">Team</p>
+      <p className="text-[10px] font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500 text-center mb-1">
+        Team
+      </p>
       <div ref={containerRef} className="relative w-full mb-2">
         <button
-        type="button"
-        onClick={() => setOpen(!open)}
-        className="flex w-full items-center justify-between rounded-lg border border-gray-200/80 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900 px-3 py-2 text-left text-sm text-gray-900 dark:text-gray-100 hover:bg-gray-100/80 dark:hover:bg-gray-800 transition-all"
-      >
-        <span className="flex items-center gap-2 truncate">
-          {activeType === 'team' ? (
-            <svg className="h-3.5 w-3.5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+          type="button"
+          onClick={() => setOpen(!open)}
+          className="flex w-full items-center justify-between rounded-lg border border-gray-200/80 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900 px-3 py-2 text-left text-sm text-gray-900 dark:text-gray-100 hover:bg-gray-100/80 dark:hover:bg-gray-800 transition-all"
+        >
+          <span className="flex items-center gap-2 truncate">
+            {activeType === 'team' ? (
+              <svg
+                className="h-3.5 w-3.5 text-purple-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+              </svg>
+            ) : (
+              <svg
+                className="h-3.5 w-3.5 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                />
+              </svg>
+            )}
+            {activeLabel}
+          </span>
+          {isPending ? (
+            <svg
+              className="ml-2 h-4 w-4 shrink-0 animate-spin text-gray-400 dark:text-gray-500"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+              />
             </svg>
           ) : (
-            <svg className="h-3.5 w-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            <svg
+              className={cn(
+                'ml-2 h-4 w-4 shrink-0 text-gray-400 dark:text-gray-500 transition-transform',
+                open && 'rotate-180'
+              )}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
             </svg>
           )}
-          {activeLabel}
-        </span>
-        {isPending ? (
-          <svg className="ml-2 h-4 w-4 shrink-0 animate-spin text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-          </svg>
-        ) : (
-          <svg
-            className={cn('ml-2 h-4 w-4 shrink-0 text-gray-400 dark:text-gray-500 transition-transform', open && 'rotate-180')}
-            fill="none" stroke="currentColor" viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        )}
-      </button>
+        </button>
 
-      {open && (
-        <div className="absolute left-0 right-0 z-50 mt-1 rounded-lg border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-900 py-1 shadow-lg shadow-gray-200/50 dark:shadow-black/30">
-          {workspaces.map((w) => (
-            <button
-              key={w.id}
-              type="button"
-              onClick={() => handleSelect(w.id)}
-              className={cn(
-                'flex w-full items-center px-3 py-2 text-left text-sm transition-colors',
-                w.id === activeValue
-                  ? 'bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium'
-                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/60 hover:text-gray-900 dark:hover:text-gray-200'
-              )}
-            >
-              {w.id === activeValue && (
-                <svg className="mr-2 h-4 w-4 text-gray-900 dark:text-gray-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              )}
-              <span className={cn('flex items-center gap-2 truncate', w.id !== activeValue && 'ml-6')}>
-                {w.type === 'team' ? (
-                  <svg className="h-3.5 w-3.5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                ) : (
-                  <svg className="h-3.5 w-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        {open && (
+          <div className="absolute left-0 right-0 z-50 mt-1 rounded-lg border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-900 py-1 shadow-lg shadow-gray-200/50 dark:shadow-black/30">
+            {workspaces.map((w) => (
+              <button
+                key={w.id}
+                type="button"
+                onClick={() => handleSelect(w.id)}
+                className={cn(
+                  'flex w-full items-center px-3 py-2 text-left text-sm transition-colors',
+                  w.id === activeValue
+                    ? 'bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-medium'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/60 hover:text-gray-900 dark:hover:text-gray-200'
+                )}
+              >
+                {w.id === activeValue && (
+                  <svg
+                    className="mr-2 h-4 w-4 text-gray-900 dark:text-gray-100"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
                 )}
-                {w.label}
-              </span>
-            </button>
-          ))}
-        </div>
-      )}
+                <span
+                  className={cn('flex items-center gap-2 truncate', w.id !== activeValue && 'ml-6')}
+                >
+                  {w.type === 'team' ? (
+                    <svg
+                      className="h-3.5 w-3.5 text-purple-500"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                    </svg>
+                  ) : (
+                    <svg
+                      className="h-3.5 w-3.5 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      />
+                    </svg>
+                  )}
+                  {w.label}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -331,7 +405,9 @@ export function Sidebar() {
       <div className="px-3 pb-4 space-y-3">
         <WorkspaceSwitcher />
         <div>
-          <p className="text-[10px] font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500 text-center mb-1">Project</p>
+          <p className="text-[10px] font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500 text-center mb-1">
+            Project
+          </p>
           <ProjectSwitcher />
         </div>
       </div>

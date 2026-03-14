@@ -98,8 +98,10 @@ export function ProjectActions({
     formData.set('name', newName.trim());
     formData.set('description', newDescription.trim());
 
-    const workspaceCookie = document.cookie.match(/(?:^| )active_workspace=([^;]*)/)?.[1] ?? 'personal';
-    const isTeamWorkspace = workspaceCookie.startsWith('team%3A') || workspaceCookie.startsWith('team:');
+    const workspaceCookie =
+      document.cookie.match(/(?:^| )active_workspace=([^;]*)/)?.[1] ?? 'personal';
+    const isTeamWorkspace =
+      workspaceCookie.startsWith('team%3A') || workspaceCookie.startsWith('team:');
 
     const optimisticProject: ProjectItem = {
       id: `temp-${Date.now()}`,

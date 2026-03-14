@@ -23,14 +23,17 @@ export interface DecisionCardData {
   created_at: string;
   custom_category?: string | null;
   is_archived?: boolean;
+  author_name?: string | null;
 }
 
 export function DecisionCard({
   decision,
   onAction,
+  onDelete,
 }: {
   decision: DecisionCardData;
   onAction?: () => void;
+  onDelete?: (id: string) => void;
 }) {
   const categoryLabel =
     decision.category === 'other' && decision.custom_category
@@ -67,10 +70,21 @@ export function DecisionCard({
               {categoryLabel} &middot; {CONFIDENCE_LABELS[decision.confidence]} confidence
             </span>
           </div>
+          {decision.author_name && !archived && (
+            <span className="text-xs text-gray-400 dark:text-gray-500 shrink-0 ml-4">
+              {decision.author_name}
+            </span>
+          )}
           {archived && (
             <div className="flex items-center gap-3">
               <RestoreButton decisionId={decision.id} onSuccess={onAction} />
-              <DeleteButton decisionId={decision.id} onSuccess={onAction} />
+              <DeleteButton
+                decisionId={decision.id}
+                onSuccess={() => {
+                  onDelete?.(decision.id);
+                  onAction?.();
+                }}
+              />
             </div>
           )}
         </div>
@@ -82,14 +96,16 @@ export function DecisionCard({
 export function DecisionList({
   decisions,
   onAction,
+  onDelete,
 }: {
   decisions: DecisionCardData[];
   onAction?: () => void;
+  onDelete?: (id: string) => void;
 }) {
   return (
     <div className="space-y-3">
       {decisions.map((d) => (
-        <DecisionCard key={d.id} decision={d} onAction={onAction} />
+        <DecisionCard key={d.id} decision={d} onAction={onAction} onDelete={onDelete} />
       ))}
     </div>
   );

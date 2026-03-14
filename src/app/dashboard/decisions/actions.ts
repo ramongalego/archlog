@@ -47,17 +47,39 @@ export async function createDecision(formData: FormData): Promise<{ id?: string;
 
   if (!profile) return { error: 'User profile not found' };
 
-  // Check plan limits
-  const { count } = await supabase
-    .from('decisions')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', user.id)
-    .eq('is_archived', false);
+  // Check plan limits — only enforce for personal projects (team projects are unlimited)
+  const { data: projectRow } = await supabase
+    .from('projects')
+    .select('team_id')
+    .eq('id', project_id)
+    .single();
 
-  if (!canCreateDecision(profile.subscription_tier, count ?? 0)) {
-    return {
-      error: 'You have reached the decision limit for your plan. Upgrade for unlimited decisions.',
-    };
+  if (!projectRow?.team_id) {
+    // Personal project — count only decisions in personal projects
+    const { data: personalProjects } = await supabase
+      .from('projects')
+      .select('id')
+      .eq('user_id', user.id)
+      .is('team_id', null);
+
+    const personalProjectIds = (personalProjects ?? []).map((p) => p.id);
+    let personalCount = 0;
+    if (personalProjectIds.length > 0) {
+      const { count } = await supabase
+        .from('decisions')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('is_archived', false)
+        .in('project_id', personalProjectIds);
+      personalCount = count ?? 0;
+    }
+
+    if (!canCreateDecision(profile.subscription_tier, personalCount)) {
+      return {
+        error:
+          'You have reached the decision limit for your plan. Upgrade for unlimited decisions.',
+      };
+    }
   }
 
   const whyResult = parseTiptapJson(why);
@@ -197,7 +219,28 @@ export async function listDecisions(params: {
   };
 
   if (error) return { decisions: [], total: 0 };
-  return { decisions: data ?? [], total: count ?? 0 };
+
+  // Attach author names for team workspace decisions
+  let decisions = data ?? [];
+  if (workspace.type === 'team' && decisions.length > 0) {
+    const userIds = [...new Set(decisions.map((d) => d.user_id))];
+    const { data: users } = await supabase
+      .from('users')
+      .select('id, display_name')
+      .in('id', userIds);
+
+    const nameMap = new Map<string, string | null>();
+    for (const u of users ?? []) {
+      nameMap.set(u.id, u.display_name);
+    }
+
+    decisions = decisions.map((d) => ({
+      ...d,
+      author_name: nameMap.get(d.user_id) ?? null,
+    }));
+  }
+
+  return { decisions, total: count ?? 0 };
 }
 
 export async function recordOutcome(formData: FormData): Promise<{ error?: string }> {
@@ -288,10 +331,9 @@ export async function updateDecision(formData: FormData): Promise<{ id?: string;
   }
 
   // RLS allows: own decisions + team owner can update any decision in their team projects
-  const { error } = (await supabase
-    .from('decisions')
-    .update(updateData)
-    .eq('id', id)) as { error: { message: string } | null };
+  const { error } = (await supabase.from('decisions').update(updateData).eq('id', id)) as {
+    error: { message: string } | null;
+  };
 
   if (error) return { error: friendlyError(error.message) };
 
@@ -366,10 +408,9 @@ export async function deleteDecision(id: string): Promise<{ error?: string }> {
   if (!decision.is_archived) return { error: 'Only archived decisions can be deleted' };
 
   // RLS allows: own decisions + team owner can delete any decision in their team projects
-  const { error } = (await supabase
-    .from('decisions')
-    .delete()
-    .eq('id', parsed.data.id)) as { error: { message: string } | null };
+  const { error } = (await supabase.from('decisions').delete().eq('id', parsed.data.id)) as {
+    error: { message: string } | null;
+  };
 
   if (error) return { error: friendlyError(error.message) };
   return {};

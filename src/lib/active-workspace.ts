@@ -1,9 +1,7 @@
 import { cookies } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 
-export type Workspace =
-  | { type: 'personal' }
-  | { type: 'team'; teamId: string };
+export type Workspace = { type: 'personal' } | { type: 'team'; teamId: string };
 
 /**
  * Read the active workspace from the cookie.

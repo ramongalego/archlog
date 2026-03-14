@@ -94,7 +94,6 @@ export function DecisionsContent({
     }
   }, [activeProjectId, doFetch]);
 
-
   function handleFilterChange(key: string, value: string | boolean | number) {
     const next = { ...filtersRef.current, [key]: value } as Filters;
     if (key !== 'page') next.page = 1;
@@ -194,7 +193,14 @@ export function DecisionsContent({
         </div>
       ) : decisions.length > 0 ? (
         <>
-          <DecisionList decisions={decisions} onAction={() => doFetch(filtersRef.current)} />
+          <DecisionList
+            decisions={decisions}
+            onAction={() => doFetch(filtersRef.current)}
+            onDelete={(id) => {
+              setDecisions((prev) => prev.filter((d) => d.id !== id));
+              setTotal((prev) => prev - 1);
+            }}
+          />
 
           {totalPages > 1 && (
             <div className="flex items-center justify-between pt-2">

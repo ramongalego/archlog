@@ -59,13 +59,26 @@ export default async function DecisionsPage({
   const tier = profile?.subscription_tier ?? 'free';
 
   let totalDecisionCount: number | null = null;
-  if (tier === 'free') {
-    const { count } = await supabase
-      .from('decisions')
-      .select('*', { count: 'exact', head: true })
+  if (tier === 'free' && workspace.type === 'personal') {
+    // Only count decisions in personal projects (not team projects)
+    const { data: personalProjects } = await supabase
+      .from('projects')
+      .select('id')
       .eq('user_id', user.id)
-      .eq('is_archived', false);
-    totalDecisionCount = count ?? 0;
+      .is('team_id', null);
+
+    const personalProjectIds = (personalProjects ?? []).map((p) => p.id);
+    if (personalProjectIds.length > 0) {
+      const { count } = await supabase
+        .from('decisions')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('is_archived', false)
+        .in('project_id', personalProjectIds);
+      totalDecisionCount = count ?? 0;
+    } else {
+      totalDecisionCount = 0;
+    }
   }
 
   const { decisions, total } = await listDecisions({

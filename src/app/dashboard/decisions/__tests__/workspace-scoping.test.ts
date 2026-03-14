@@ -52,8 +52,18 @@ function createMockQueryBuilder(table: string) {
   const builder: Record<string, unknown> = {};
 
   const chainMethods = [
-    'select', 'eq', 'in', 'is', 'or', 'gte', 'lte',
-    'order', 'range', 'limit', 'single', 'maybeSingle',
+    'select',
+    'eq',
+    'in',
+    'is',
+    'or',
+    'gte',
+    'lte',
+    'order',
+    'range',
+    'limit',
+    'single',
+    'maybeSingle',
   ];
 
   for (const method of chainMethods) {
@@ -70,15 +80,9 @@ function createMockQueryBuilder(table: string) {
       const eqFilters = filters.filter((f) => f.method === 'eq');
       const isFilters = filters.filter((f) => f.method === 'is');
 
-      const hasTeamId = eqFilters.some(
-        (f) => f.args[0] === 'team_id' && f.args[1] === TEAM_ID
-      );
-      const hasUserId = eqFilters.some(
-        (f) => f.args[0] === 'user_id' && f.args[1] === USER_ID
-      );
-      const hasTeamNull = isFilters.some(
-        (f) => f.args[0] === 'team_id' && f.args[1] === null
-      );
+      const hasTeamId = eqFilters.some((f) => f.args[0] === 'team_id' && f.args[1] === TEAM_ID);
+      const hasUserId = eqFilters.some((f) => f.args[0] === 'user_id' && f.args[1] === USER_ID);
+      const hasTeamNull = isFilters.some((f) => f.args[0] === 'team_id' && f.args[1] === null);
 
       if (hasTeamId) {
         resolve({ data: [{ id: TEAM_PROJECT_ID }], error: null });
@@ -89,9 +93,7 @@ function createMockQueryBuilder(table: string) {
       }
     } else if (table === 'decisions') {
       // Filter decisions based on `.in('project_id', [...])` call
-      const inFilter = filters.find(
-        (f) => f.method === 'in' && f.args[0] === 'project_id'
-      );
+      const inFilter = filters.find((f) => f.method === 'in' && f.args[0] === 'project_id');
       const allowedProjectIds = inFilter ? (inFilter.args[1] as string[]) : null;
 
       let results = allDecisions;
@@ -113,9 +115,7 @@ jest.mock('@/lib/supabase/server', () => ({
   createClient: jest.fn(() =>
     Promise.resolve({
       auth: {
-        getUser: jest.fn(() =>
-          Promise.resolve({ data: { user: { id: USER_ID } } })
-        ),
+        getUser: jest.fn(() => Promise.resolve({ data: { user: { id: USER_ID } } })),
       },
       from: jest.fn((table: string) => createMockQueryBuilder(table)),
     })

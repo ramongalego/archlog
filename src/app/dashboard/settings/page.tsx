@@ -358,7 +358,10 @@ function TeamSection({
             </p>
             {editingName === team.id ? (
               <form
-                onSubmit={(e) => { e.preventDefault(); handleRename(team.id); }}
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleRename(team.id);
+                }}
                 className="flex items-center gap-2"
               >
                 <Input
@@ -386,11 +389,24 @@ function TeamSection({
                 </h2>
                 <button
                   type="button"
-                  onClick={() => { setEditingName(team.id); setEditNameValue(team.name); }}
+                  onClick={() => {
+                    setEditingName(team.id);
+                    setEditNameValue(team.name);
+                  }}
                   className="cursor-pointer text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
                 >
-                  <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  <svg
+                    className="h-3.5 w-3.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                    />
                   </svg>
                 </button>
               </div>
@@ -413,10 +429,7 @@ function TeamSection({
               </span>
             </div>
             {team.members.map((member) => (
-              <div
-                key={member.id}
-                className="flex items-center justify-between py-1.5 text-sm"
-              >
+              <div key={member.id} className="flex items-center justify-between py-1.5 text-sm">
                 <div className="flex items-center gap-2">
                   <span className="text-gray-700 dark:text-gray-300">
                     {member.status === 'accepted' && member.display_name
@@ -503,9 +516,7 @@ function TeamSection({
             <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
               Team
             </p>
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              {team.name}
-            </h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{team.name}</h2>
           </div>
 
           <div className="space-y-2 mb-4">
@@ -571,11 +582,7 @@ interface PendingInvite {
   invited_at: string;
 }
 
-function PendingInvitationsSection({
-  invites: initialInvites,
-}: {
-  invites: PendingInvite[];
-}) {
+function PendingInvitationsSection({ invites: initialInvites }: { invites: PendingInvite[] }) {
   const [invites, setInvites] = useState(initialInvites);
   const [accepting, setAccepting] = useState<string | null>(null);
 
@@ -606,13 +613,20 @@ function PendingInvitationsSection({
       </h2>
       <div className="space-y-2">
         {invites.map((invite) => (
-          <div
-            key={invite.id}
-            className="flex items-center justify-between py-2"
-          >
+          <div key={invite.id} className="flex items-center justify-between py-2">
             <div className="flex items-center gap-2">
-              <svg className="h-4 w-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+              <svg
+                className="h-4 w-4 text-purple-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
+                />
               </svg>
               <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                 {invite.team_name}

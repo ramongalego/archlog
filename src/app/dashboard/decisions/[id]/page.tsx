@@ -67,12 +67,22 @@ export default async function DecisionDetailPage({ params }: { params: Promise<{
   // Determine if current user can edit/delete (own decision or team owner)
   const isOwn = decision.user_id === user.id;
   const isTeamOwner = isTeamProject
-    ? (await supabase.from('teams').select('owner_id').eq('id', project!.team_id!).single()).data?.owner_id === user.id
+    ? (await supabase.from('teams').select('owner_id').eq('id', project!.team_id!).single()).data
+        ?.owner_id === user.id
     : false;
   const canModify = isOwn || isTeamOwner;
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
+      <Link
+        href="/dashboard/decisions"
+        className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors ml-[-4]"
+      >
+        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+        Back to Decisions
+      </Link>
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-gray-100">
@@ -80,9 +90,7 @@ export default async function DecisionDetailPage({ params }: { params: Promise<{
           </h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             {formatDate(decision.created_at)}
-            {authorName && (
-              <span> &middot; by {authorName}</span>
-            )}
+            {authorName && <span> &middot; by {authorName}</span>}
           </p>
         </div>
         <div className="flex shrink-0 items-center">

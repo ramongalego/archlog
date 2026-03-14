@@ -374,10 +374,9 @@ export async function getPendingInvites(): Promise<{
   if (!pending || pending.length === 0) return { invites: [] };
 
   const teamIds = pending.map((p) => p.team_id);
-  const { data: teams } = (await supabase
-    .from('teams')
-    .select('id, name')
-    .in('id', teamIds)) as { data: Pick<Team, 'id' | 'name'>[] | null };
+  const { data: teams } = (await supabase.from('teams').select('id, name').in('id', teamIds)) as {
+    data: Pick<Team, 'id' | 'name'>[] | null;
+  };
 
   const teamMap = new Map<string, string>();
   for (const t of teams ?? []) {
@@ -474,9 +473,7 @@ export async function getTeamsForUser(): Promise<{
     .in('team_id', teamIds)) as { data: TeamMember[] | null };
 
   // Fetch display names for accepted members (those with user_id)
-  const userIds = (allMembers ?? [])
-    .filter((m) => m.user_id)
-    .map((m) => m.user_id!);
+  const userIds = (allMembers ?? []).filter((m) => m.user_id).map((m) => m.user_id!);
 
   const displayNameMap = new Map<string, string | null>();
   if (userIds.length > 0) {

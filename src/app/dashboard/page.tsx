@@ -46,10 +46,9 @@ export default async function DashboardPage() {
     scopedProjectIds = (personalProjects ?? []).map((p) => p.id);
   }
 
-  function applyWorkspaceFilter<T extends { eq: (col: string, val: string) => T; in: (col: string, vals: string[]) => T }>(
-    query: T,
-    projectIdCol = 'project_id'
-  ): T {
+  function applyWorkspaceFilter<
+    T extends { eq: (col: string, val: string) => T; in: (col: string, vals: string[]) => T },
+  >(query: T, projectIdCol = 'project_id'): T {
     if (scopedProjectIds.length > 0) {
       return query.in(projectIdCol, scopedProjectIds);
     }
@@ -109,10 +108,7 @@ export default async function DashboardPage() {
   const { data: pendingSuggestions } = await suggestionsQuery;
 
   // Analytics sample — total, overdue, vindication rate
-  let statsQuery = supabase
-    .from('decisions')
-    .select('outcome_status')
-    .eq('is_archived', false);
+  let statsQuery = supabase.from('decisions').select('outcome_status').eq('is_archived', false);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   statsQuery = applyWorkspaceFilter(statsQuery as any) as typeof statsQuery;
