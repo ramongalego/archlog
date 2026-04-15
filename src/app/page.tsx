@@ -36,14 +36,43 @@ export default function LandingPage() {
         }
       />
 
-      {/* Hero */}
-      <section className="px-6 py-24 sm:py-32">
-        <div className="mx-auto max-w-2xl text-center">
+      {/* Hero — notebook/ledger aesthetic */}
+      <section className="relative overflow-hidden px-6 py-24 sm:py-32">
+        {/* Horizontal ruled lines — like a legal pad */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-[repeating-linear-gradient(to_bottom,transparent_0,transparent_39px,rgba(0,0,0,0.04)_39px,rgba(0,0,0,0.04)_40px)] dark:bg-[repeating-linear-gradient(to_bottom,transparent_0,transparent_39px,rgba(255,255,255,0.04)_39px,rgba(255,255,255,0.04)_40px)]"
+        />
+        {/* Left margin rule — like a notebook margin */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 left-8 hidden w-0.5 bg-amber-500/50 md:block lg:left-16"
+        />
+
+        <div className="relative mx-auto max-w-2xl text-center">
           <div className="inline-flex items-center rounded-full border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 px-3 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 mb-8">
             Decision memory for teams that move fast
           </div>
           <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-100 sm:text-5xl lg:text-6xl leading-[1.1]">
-            Remember why
+            <span className="relative inline-block">
+              <span className="relative z-10">Remember</span>
+              {/* Hand-drawn oval — editorial pen-marking */}
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 220 80"
+                preserveAspectRatio="none"
+                className="absolute inset-[-0.25em_-0.4em_-0.2em_-0.4em] z-0 h-[calc(100%+0.45em)] w-[calc(100%+0.8em)] overflow-visible text-amber-500"
+              >
+                <path
+                  d="M 12 42 C 22 10, 200 8, 212 38 C 215 70, 25 74, 10 44"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  fill="none"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </span>{' '}
+            why
             <br />
             <span className="text-gray-400 dark:text-gray-500">you made that call</span>
           </h1>
@@ -54,7 +83,7 @@ export default function LandingPage() {
           <div className="mt-10 flex justify-center gap-3">
             <Link
               href="/signup"
-              className="rounded-lg bg-gray-900 dark:bg-white px-6 py-2.5 text-sm font-medium text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors shadow-sm"
+              className="rounded-lg bg-gray-900 dark:bg-white px-6 py-2.5 text-sm font-medium text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 transition-all shadow-sm hover:shadow-[0_0_0_4px_rgba(245,158,11,0.18)]"
             >
               Start logging decisions
             </Link>
@@ -192,11 +221,11 @@ export default function LandingPage() {
             ].map((feature) => (
               <div
                 key={feature.title}
-                className="rounded-xl border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-950 px-5 py-5"
+                className="group rounded-xl border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-950 px-5 py-5 transition-all duration-300 hover:-translate-y-1 hover:border-amber-500/40 hover:shadow-[0_10px_30px_-12px_rgba(245,158,11,0.22)]"
               >
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-900">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-900 transition-colors group-hover:bg-amber-500/10">
                   <svg
-                    className="h-4 w-4 text-gray-600 dark:text-gray-400"
+                    className="h-4 w-4 text-gray-600 dark:text-gray-400 transition-colors group-hover:text-amber-600 dark:group-hover:text-amber-400"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -324,7 +353,7 @@ export default function LandingPage() {
 
           <div className="mt-12 grid gap-6 sm:grid-cols-3 max-w-5xl mx-auto">
             {/* Free */}
-            <div className="rounded-xl border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-950 px-6 py-6">
+            <div className="rounded-xl border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-950 px-6 py-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
               <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">Free</p>
               <p className="mt-2 flex items-baseline gap-1">
                 <span className="text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
@@ -369,9 +398,9 @@ export default function LandingPage() {
             </div>
 
             {/* Solo */}
-            <div className="rounded-xl border-2 border-gray-900 dark:border-white bg-white dark:bg-gray-950 px-6 py-6 relative">
+            <div className="rounded-xl border-2 border-amber-500/60 bg-white dark:bg-gray-950 px-6 py-6 relative transition-all duration-300 hover:-translate-y-1 hover:border-amber-500/80 hover:shadow-[0_20px_50px_-20px_rgba(245,158,11,0.35)]">
               <div className="absolute -top-3 left-6">
-                <span className="inline-flex items-center rounded-full bg-gray-900 dark:bg-white px-3 py-0.5 text-xs font-semibold text-white dark:text-gray-900">
+                <span className="inline-flex items-center rounded-full bg-amber-500 px-3 py-0.5 text-xs font-semibold text-white shadow-sm">
                   Popular
                 </span>
               </div>
@@ -398,7 +427,7 @@ export default function LandingPage() {
                     className="flex items-start gap-2.5 text-sm text-gray-600 dark:text-gray-400"
                   >
                     <svg
-                      className="mt-0.5 h-4 w-4 shrink-0 text-gray-900 dark:text-gray-100"
+                      className="mt-0.5 h-4 w-4 shrink-0 text-amber-500"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -416,14 +445,14 @@ export default function LandingPage() {
               </ul>
               <Link
                 href="/signup"
-                className="mt-8 block w-full rounded-lg bg-gray-900 dark:bg-white px-4 py-2.5 text-center text-sm font-medium text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors shadow-sm"
+                className="mt-8 block w-full rounded-lg bg-gray-900 dark:bg-white px-4 py-2.5 text-center text-sm font-medium text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 transition-all shadow-sm hover:shadow-[0_0_0_4px_rgba(245,158,11,0.18)]"
               >
                 Get started
               </Link>
             </div>
 
             {/* Team */}
-            <div className="rounded-xl border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-950 px-6 py-6">
+            <div className="rounded-xl border border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-950 px-6 py-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
               <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">Team</p>
               <p className="mt-2 flex items-baseline gap-1.5">
                 <span className="text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
@@ -482,11 +511,40 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="border-t border-gray-100 dark:border-gray-800/60 bg-gray-50/50 dark:bg-gray-900/30 px-6 py-24">
-        <div className="mx-auto max-w-2xl text-center">
+      {/* CTA — notebook bookend to the hero */}
+      <section className="relative overflow-hidden border-t border-gray-100 dark:border-gray-800/60 bg-gray-50/50 dark:bg-gray-900/30 px-6 py-24">
+        {/* Horizontal ruled lines */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-[repeating-linear-gradient(to_bottom,transparent_0,transparent_39px,rgba(0,0,0,0.04)_39px,rgba(0,0,0,0.04)_40px)] dark:bg-[repeating-linear-gradient(to_bottom,transparent_0,transparent_39px,rgba(255,255,255,0.04)_39px,rgba(255,255,255,0.04)_40px)]"
+        />
+        {/* Right margin rule — bookend variation of the hero's left rule */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 right-8 hidden w-0.5 bg-amber-500/50 md:block lg:right-16"
+        />
+
+        <div className="relative mx-auto max-w-2xl text-center">
           <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100 sm:text-3xl">
-            Stop forgetting why you made that call
+            Stop{' '}
+            <span className="relative inline-block">
+              <span className="relative z-10">forgetting</span>
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 220 80"
+                preserveAspectRatio="none"
+                className="absolute inset-[-0.25em_-0.4em_-0.2em_-0.4em] z-0 h-[calc(100%+0.45em)] w-[calc(100%+0.8em)] overflow-visible text-amber-500"
+              >
+                <path
+                  d="M 12 42 C 22 10, 200 8, 212 38 C 215 70, 25 74, 10 44"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  fill="none"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </span>{' '}
+            why you made that call
           </h2>
           <p className="mt-4 text-gray-500 dark:text-gray-400 max-w-md mx-auto">
             Two minutes to log a decision now saves hours of re-debating later.
@@ -494,7 +552,7 @@ export default function LandingPage() {
           <div className="mt-8 flex justify-center gap-3">
             <Link
               href="/signup"
-              className="rounded-lg bg-gray-900 dark:bg-white px-6 py-2.5 text-sm font-medium text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors shadow-sm"
+              className="rounded-lg bg-gray-900 dark:bg-white px-6 py-2.5 text-sm font-medium text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 transition-all shadow-sm hover:shadow-[0_0_0_4px_rgba(245,158,11,0.18)]"
             >
               Start logging decisions
             </Link>
