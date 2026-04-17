@@ -5,6 +5,8 @@ import { getMergedPRs } from '@/lib/github/client';
 import { isCandidate, extractDecisionsFromPRs } from '@/lib/ai/extract-decisions';
 import { storeSuggestions } from '@/lib/ai/suggestion-pipeline';
 import { githubScanSchema } from '@/lib/validation';
+import { checkRateLimit, rateLimits } from '@/lib/api/rate-limit';
+import { logger } from '@/lib/logger';
 import type { GitHubConnection, SuggestedDecision } from '@/types/decisions';
 
 export const maxDuration = 120;
@@ -19,7 +21,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const body = await request.json();
+  const rl = checkRateLimit(`scan:github:${user.id}`, rateLimits.integrationScan);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: 'Rate limit exceeded. Please try again later.' },
+      {
+        status: 429,
+        headers: { 'Retry-After': Math.ceil((rl.resetAt - Date.now()) / 1000).toString() },
+      }
+    );
+  }
+
+  const body = await request.json().catch(() => null);
+  if (!body) return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   const parsed = githubScanSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
@@ -85,8 +99,11 @@ export async function POST(request: NextRequest) {
         },
       });
       found++;
-    } catch {
-      // Skip individual storage failures
+    } catch (err) {
+      logger.warn('Failed to store GitHub suggestion', {
+        prNumber: pr.number,
+        error: err instanceof Error ? err.message : String(err),
+      });
     }
   }
 

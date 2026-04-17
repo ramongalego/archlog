@@ -104,8 +104,7 @@ export async function createDecision(formData: FormData): Promise<{ id?: string;
 
   if (error) return { error: friendlyError(error.message) };
 
-  // Trigger embedding generation asynchronously (non-blocking)
-  triggerEmbeddingGeneration(data!.id).catch(() => {});
+  void triggerEmbeddingGeneration(data!.id);
 
   return { id: data!.id };
 }
@@ -220,7 +219,6 @@ export async function listDecisions(params: {
 
   if (error) return { decisions: [], total: 0 };
 
-  // Attach author names for team workspace decisions
   let decisions = data ?? [];
   if (workspace.type === 'team' && decisions.length > 0) {
     const userIds = [...new Set(decisions.map((d) => d.user_id))];
@@ -229,10 +227,9 @@ export async function listDecisions(params: {
       .select('id, display_name')
       .in('id', userIds);
 
-    const nameMap = new Map<string, string | null>();
-    for (const u of users ?? []) {
-      nameMap.set(u.id, u.display_name);
-    }
+    const nameMap = new Map<string, string | null>(
+      (users ?? []).map((u) => [u.id, u.display_name])
+    );
 
     decisions = decisions.map((d) => ({
       ...d,
@@ -281,8 +278,7 @@ export async function recordOutcome(formData: FormData): Promise<{ error?: strin
 
   if (error) return { error: friendlyError(error.message) };
 
-  // Regenerate embedding to include outcome context
-  triggerEmbeddingGeneration(decision_id).catch(() => {});
+  void triggerEmbeddingGeneration(decision_id);
 
   return {};
 }
@@ -337,8 +333,7 @@ export async function updateDecision(formData: FormData): Promise<{ id?: string;
 
   if (error) return { error: friendlyError(error.message) };
 
-  // Regenerate embedding with updated content
-  triggerEmbeddingGeneration(id).catch(() => {});
+  void triggerEmbeddingGeneration(id);
 
   return { id };
 }

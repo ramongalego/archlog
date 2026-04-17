@@ -29,9 +29,7 @@ describe('invite tokens', () => {
 
   it('rejects an expired token', async () => {
     const { SignJWT } = await import('jose');
-    const secret = new TextEncoder().encode(
-      process.env.TEAM_INVITE_SECRET ?? 'default-invite-secret'
-    );
+    const secret = new TextEncoder().encode(process.env.TEAM_INVITE_SECRET!);
 
     const expiredToken = await new SignJWT(payload as unknown as Record<string, unknown>)
       .setProtectedHeader({ alg: 'HS256' })
@@ -44,9 +42,7 @@ describe('invite tokens', () => {
 
   it('rejects a token with missing email field', async () => {
     const { SignJWT } = await import('jose');
-    const secret = new TextEncoder().encode(
-      process.env.TEAM_INVITE_SECRET ?? 'default-invite-secret'
-    );
+    const secret = new TextEncoder().encode(process.env.TEAM_INVITE_SECRET!);
 
     const incomplete = await new SignJWT({ team_id: payload.team_id } as Record<string, unknown>)
       .setProtectedHeader({ alg: 'HS256' })

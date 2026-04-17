@@ -5,6 +5,8 @@ import { getPageContent, getChildPages } from '@/lib/notion/client';
 import { extractDecisionsFromText } from '@/lib/ai/suggestion-pipeline';
 import { storeSuggestions } from '@/lib/ai/suggestion-pipeline';
 import { notionScanSchema } from '@/lib/validation';
+import { checkRateLimit, rateLimits } from '@/lib/api/rate-limit';
+import { logger } from '@/lib/logger';
 import type { NotionConnection } from '@/types/decisions';
 
 export const maxDuration = 120;
@@ -50,7 +52,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const body = await request.json();
+  const rl = checkRateLimit(`scan:notion:${user.id}`, rateLimits.integrationScan);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: 'Rate limit exceeded. Please try again later.' },
+      {
+        status: 429,
+        headers: { 'Retry-After': Math.ceil((rl.resetAt - Date.now()) / 1000).toString() },
+      }
+    );
+  }
+
+  const body = await request.json().catch(() => null);
+  if (!body) return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   const parsed = notionScanSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
@@ -122,8 +136,11 @@ export async function POST(request: NextRequest) {
             }
           }
         }
-      } catch {
-        // Can't access children — skip
+      } catch (err) {
+        logger.warn('Notion child-page fetch failed', {
+          pageId: item.id,
+          error: err instanceof Error ? err.message : String(err),
+        });
       }
     }
   } catch (err) {
@@ -153,8 +170,10 @@ export async function POST(request: NextRequest) {
           decisions,
         });
         found += count;
-      } catch {
-        // Skip storage failures
+      } catch (err) {
+        logger.warn('Failed to store Notion suggestions', {
+          error: err instanceof Error ? err.message : String(err),
+        });
       }
     }
   }

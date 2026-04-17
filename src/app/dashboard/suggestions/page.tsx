@@ -8,6 +8,23 @@ import type { SuggestedDecision } from '@/types/decisions';
 
 export const metadata: Metadata = { title: 'Suggestions' };
 
+const PAGE_SIZE = 50;
+
+async function resolveProjectId(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  activeProjectId: string | null
+): Promise<string> {
+  if (activeProjectId) return activeProjectId;
+  const { data } = (await supabase
+    .from('projects')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('is_default', true)
+    .single()) as { data: { id: string } | null };
+  return data?.id ?? '';
+}
+
 export default async function SuggestionsPage() {
   const supabase = await createClient();
   const {
@@ -23,32 +40,26 @@ export default async function SuggestionsPage() {
     .select('*')
     .eq('user_id', user.id)
     .eq('status', 'pending')
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .limit(PAGE_SIZE);
 
   if (activeProjectId) {
     query = query.eq('project_id', activeProjectId);
   }
 
-  const { data: suggestions } = (await query) as { data: SuggestedDecision[] | null };
+  const [suggestionsRes, projectIdForAccept] = await Promise.all([
+    query,
+    resolveProjectId(supabase, user.id, activeProjectId),
+  ]);
 
-  // Get project ID for accepting suggestions
-  let projectId = activeProjectId;
-  if (!projectId) {
-    const { data: defaultProject } = (await supabase
-      .from('projects')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('is_default', true)
-      .single()) as { data: { id: string } | null };
-    projectId = defaultProject?.id ?? '';
-  }
+  const suggestions = (suggestionsRes.data ?? []) as SuggestedDecision[];
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <PageHeader title="Suggested Decisions" />
 
-      {suggestions && suggestions.length > 0 ? (
-        <SuggestionsList suggestions={suggestions} projectId={projectId} />
+      {suggestions.length > 0 ? (
+        <SuggestionsList suggestions={suggestions} projectId={projectIdForAccept} />
       ) : (
         <div className="text-center py-12">
           <p className="text-gray-500 dark:text-gray-400">No pending suggestions.</p>

@@ -1,34 +1,37 @@
+import { env } from '@/lib/env';
+import { logger } from '@/lib/logger';
+
 /**
  * Trigger embedding generation for a decision via the Supabase Edge Function.
- * This is called asynchronously after decision create/update to avoid blocking the UI.
+ *
+ * Intentionally non-throwing: callers use fire-and-forget from server actions
+ * so failures here must not surface to the user. Failures are logged with
+ * decision context so they can be retried or investigated.
  */
 export async function triggerEmbeddingGeneration(decisionId: string): Promise<void> {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!supabaseUrl || !anonKey || !serviceKey) {
-    console.warn('Supabase config not complete, skipping embedding generation');
-    return;
-  }
+  const { NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } =
+    env();
 
   try {
-    const res = await fetch(`${supabaseUrl}/functions/v1/generate-embedding`, {
+    const res = await fetch(`${NEXT_PUBLIC_SUPABASE_URL}/functions/v1/generate-embedding`, {
       method: 'POST',
       headers: {
-        apikey: anonKey,
-        Authorization: `Bearer ${serviceKey}`,
+        apikey: NEXT_PUBLIC_SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ decision_id: decisionId }),
     });
 
     if (!res.ok) {
-      const body = await res.text();
-      console.error('Embedding generation failed:', body);
+      const body = await res.text().catch(() => '<unreadable>');
+      logger.warn('Embedding generation responded non-2xx', {
+        decisionId,
+        status: res.status,
+        body: body.slice(0, 500),
+      });
     }
   } catch (err) {
-    // Non-blocking - log and continue
-    console.error('Failed to trigger embedding generation:', err);
+    logger.error('Failed to trigger embedding generation', err, { decisionId });
   }
 }

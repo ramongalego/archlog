@@ -1,8 +1,19 @@
 import { Resend } from 'resend';
+import { env } from '@/lib/env';
+import { logger } from '@/lib/logger';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let client: Resend | null = null;
 
-const FROM_ADDRESS = 'ArchLog <notifications@archlog.app>';
+function getClient(): Resend {
+  if (!client) {
+    const apiKey = env().RESEND_API_KEY;
+    if (!apiKey) throw new Error('RESEND_API_KEY is not configured');
+    client = new Resend(apiKey);
+  }
+  return client;
+}
+
+const DEFAULT_FROM = 'ArchLog <notifications@archlog.app>';
 
 export async function sendEmail(params: {
   to: string;
@@ -10,8 +21,8 @@ export async function sendEmail(params: {
   html: string;
   text?: string;
 }) {
-  const { error } = await resend.emails.send({
-    from: FROM_ADDRESS,
+  const { error } = await getClient().emails.send({
+    from: env().RESEND_FROM_EMAIL ?? DEFAULT_FROM,
     to: params.to,
     subject: params.subject,
     html: params.html,
@@ -19,7 +30,7 @@ export async function sendEmail(params: {
   });
 
   if (error) {
-    console.error('Failed to send email:', error);
+    logger.error('Resend email send failed', error, { subject: params.subject });
     throw new Error(`Email send failed: ${error.message}`);
   }
 }

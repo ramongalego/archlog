@@ -6,9 +6,9 @@ import { friendlyError } from '@/lib/supabase/errors';
 import { signInviteToken, verifyInviteToken } from '@/lib/team/invite-token';
 import { sendEmail } from '@/lib/email/send';
 import { buildTeamInviteHtml, buildTeamInviteText } from '@/lib/email/templates/team-invite';
+import { env } from '@/lib/env';
+import { logger } from '@/lib/logger';
 import type { Team, TeamMember, Project } from '@/types/decisions';
-
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://archlog.app';
 
 async function resetWorkspaceIfTeam(teamId: string) {
   const cookieStore = await cookies();
@@ -48,7 +48,7 @@ export async function createTeam(name: string): Promise<{ id?: string; error?: s
     .single()) as { data: { id: string } | null; error: { message: string } | null };
 
   if (teamError) {
-    console.error('createTeam insert failed:', teamError.message);
+    logger.error('createTeam insert failed', teamError, { userId: user.id });
     return { error: friendlyError(teamError.message) };
   }
 
@@ -63,8 +63,10 @@ export async function createTeam(name: string): Promise<{ id?: string; error?: s
   } as TeamMember)) as { error: { message: string } | null };
 
   if (memberError) {
-    console.error('createTeam member insert failed:', memberError.message);
-    // Roll back: delete the team to avoid orphaned row without an owner member
+    logger.error('createTeam member insert failed', memberError, {
+      userId: user.id,
+      teamId: team!.id,
+    });
     await supabase.from('teams').delete().eq('id', team!.id);
     return { error: friendlyError(memberError.message) };
   }
@@ -77,8 +79,7 @@ export async function createTeam(name: string): Promise<{ id?: string; error?: s
   } as Project)) as { error: { message: string } | null };
 
   if (projectError) {
-    console.error('createTeam default project failed:', projectError.message);
-    // Non-fatal: team was created, project can be created later
+    logger.error('createTeam default project failed', projectError, { teamId: team!.id });
   }
 
   return { id: team!.id };
@@ -173,7 +174,7 @@ export async function inviteTeamMember(teamId: string, email: string): Promise<{
 
   // Generate invite token and send email
   const token = await signInviteToken({ team_id: teamId, email: email.toLowerCase() });
-  const acceptUrl = `${BASE_URL}/dashboard/team/accept?token=${encodeURIComponent(token)}`;
+  const acceptUrl = `${env().NEXT_PUBLIC_APP_URL}/dashboard/team/accept?token=${encodeURIComponent(token)}`;
 
   // Get inviter display name
   const { data: profile } = await supabase
@@ -197,9 +198,8 @@ export async function inviteTeamMember(teamId: string, email: string): Promise<{
         acceptUrl,
       }),
     });
-  } catch {
-    // Invitation row was already created; email failure is non-fatal
-    console.error('Failed to send invite email to', email);
+  } catch (err) {
+    logger.error('Failed to send team invite email', err, { teamId });
   }
 
   return {};

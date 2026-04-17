@@ -5,14 +5,13 @@ import {
   buildOutcomeReminderHtml,
   buildOutcomeReminderText,
 } from '@/lib/email/templates/outcome-reminder';
+import { env } from '@/lib/env';
+import { logger } from '@/lib/logger';
 import type { Database } from '@/types/database';
 import type { User, Decision } from '@/types/decisions';
 
 function getSupabase() {
-  return createClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+  return createClient<Database>(env().NEXT_PUBLIC_SUPABASE_URL, env().SUPABASE_SERVICE_ROLE_KEY);
 }
 
 export const outcomeRemindersTask = schedules.task({
@@ -20,7 +19,7 @@ export const outcomeRemindersTask = schedules.task({
   cron: '0 10 * * *', // Every day at 10:00 AM UTC
   run: async () => {
     const supabase = getSupabase();
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://archlog.app';
+    const baseUrl = env().NEXT_PUBLIC_APP_URL;
 
     // Only email about decisions that became overdue in the last 24 hours
     // (first day past due). Persistent nudges are handled by the weekly digest.
@@ -82,7 +81,7 @@ export const outcomeRemindersTask = schedules.task({
         });
         processed++;
       } catch (err) {
-        console.error(`Failed to send reminder to ${profile.email}:`, err);
+        logger.error('Failed to send outcome reminder', err, { userId });
       }
     }
 

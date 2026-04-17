@@ -2,14 +2,13 @@ import { schedules } from '@trigger.dev/sdk/v3';
 import { createClient } from '@supabase/supabase-js';
 import { sendEmail } from '@/lib/email/send';
 import { buildWeeklyDigestHtml, buildWeeklyDigestText } from '@/lib/email/templates/weekly-digest';
+import { env } from '@/lib/env';
+import { logger } from '@/lib/logger';
 import type { Database } from '@/types/database';
 import type { User, Decision } from '@/types/decisions';
 
 function getSupabase() {
-  return createClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+  return createClient<Database>(env().NEXT_PUBLIC_SUPABASE_URL, env().SUPABASE_SERVICE_ROLE_KEY);
 }
 
 export const weeklyDigestTask = schedules.task({
@@ -17,7 +16,7 @@ export const weeklyDigestTask = schedules.task({
   cron: '0 9 * * 1', // Every Monday at 9:00 AM UTC
   run: async () => {
     const supabase = getSupabase();
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://archlog.app';
+    const baseUrl = env().NEXT_PUBLIC_APP_URL;
 
     const { data: users } = (await supabase
       .from('users')
@@ -89,7 +88,7 @@ export const weeklyDigestTask = schedules.task({
         });
         processed++;
       } catch (err) {
-        console.error(`Failed to send digest to ${user.email}:`, err);
+        logger.error('Failed to send weekly digest', err, { userId: user.id });
       }
     }
 

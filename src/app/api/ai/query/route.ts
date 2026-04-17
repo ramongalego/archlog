@@ -3,7 +3,16 @@ import { canUseAiQuery, canSearchCrossProject } from '@/lib/stripe/plans';
 import { queryDecisions } from '@/lib/ai/query';
 import { aiQuerySchema } from '@/lib/validation';
 import { getActiveWorkspace } from '@/lib/active-workspace';
+import { checkRateLimit, rateLimits } from '@/lib/api/rate-limit';
+import { logger } from '@/lib/logger';
 import type { User } from '@/types/decisions';
+
+function jsonResponse(body: unknown, status: number, extraHeaders: Record<string, string> = {}) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json', ...extraHeaders },
+  });
+}
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -11,54 +20,44 @@ export async function POST(request: Request) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 401,
-      headers: { 'Content-Type': 'application/json' },
+  if (!user) return jsonResponse({ error: 'Unauthorized' }, 401);
+
+  const rl = checkRateLimit(`ai:query:${user.id}`, rateLimits.aiQuery);
+  if (!rl.allowed) {
+    return jsonResponse({ error: 'Rate limit exceeded. Please try again later.' }, 429, {
+      'Retry-After': Math.ceil((rl.resetAt - Date.now()) / 1000).toString(),
     });
   }
 
-  // Check subscription tier and workspace context
   const { data: profile } = (await supabase
     .from('users')
     .select('subscription_tier')
     .eq('id', user.id)
     .single()) as { data: Pick<User, 'subscription_tier'> | null };
 
-  // Determine workspace early — team workspace unlocks Ask for all members
   const workspace = await getActiveWorkspace();
   const isInTeamWorkspace = workspace.type === 'team';
 
   if (!profile || (!canUseAiQuery(profile.subscription_tier) && !isInTeamWorkspace)) {
-    return new Response(
-      JSON.stringify({ error: 'AI query requires a paid plan. Upgrade to unlock.' }),
-      {
-        status: 403,
-        headers: { 'Content-Type': 'application/json' },
-      }
-    );
+    return jsonResponse({ error: 'AI query requires a paid plan. Upgrade to unlock.' }, 403);
   }
 
-  const body = await request.json();
+  const body = await request.json().catch(() => null);
+  if (!body) return jsonResponse({ error: 'Invalid JSON' }, 400);
+
   const parsed = aiQuerySchema.safeParse(body);
-  if (!parsed.success) {
-    return new Response(JSON.stringify({ error: parsed.error.issues[0].message }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
+  if (!parsed.success) return jsonResponse({ error: parsed.error.issues[0].message }, 400);
 
   const { question, project_id } = parsed.data;
 
-  // Cross-project query (no project_id) requires a paid plan or team workspace
   if (!project_id && !canSearchCrossProject(profile.subscription_tier) && !isInTeamWorkspace) {
-    return new Response(
-      JSON.stringify({ error: 'Cross-project search requires a paid plan. Upgrade to unlock.' }),
-      { status: 403, headers: { 'Content-Type': 'application/json' } }
+    return jsonResponse(
+      { error: 'Cross-project search requires a paid plan. Upgrade to unlock.' },
+      403
     );
   }
-  let workspaceProjectIds: string[] = [];
 
+  let workspaceProjectIds: string[] = [];
   if (workspace.type === 'team') {
     const { data: teamProjects } = await supabase
       .from('projects')
@@ -76,9 +75,12 @@ export async function POST(request: Request) {
     workspaceProjectIds = (personalProjects ?? []).map((p) => p.id);
   }
 
-  // Stream the response as SSE
-  const encoder = new TextEncoder();
+  // Enforce that a caller-supplied project id belongs to the active workspace.
+  if (project_id && !workspaceProjectIds.includes(project_id)) {
+    return jsonResponse({ error: 'Project not found' }, 404);
+  }
 
+  const encoder = new TextEncoder();
   const readable = new ReadableStream({
     async start(controller) {
       try {
@@ -90,13 +92,14 @@ export async function POST(request: Request) {
         });
 
         for await (const event of generator) {
-          const data = JSON.stringify(event);
-          controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
         }
       } catch (err) {
-        const errorMsg = err instanceof Error ? err.message : 'Something went wrong';
+        logger.error('AI query stream failed', err, { userId: user.id });
         controller.enqueue(
-          encoder.encode(`data: ${JSON.stringify({ type: 'error', message: errorMsg })}\n\n`)
+          encoder.encode(
+            `data: ${JSON.stringify({ type: 'error', message: 'Something went wrong' })}\n\n`
+          )
         );
       } finally {
         controller.close();

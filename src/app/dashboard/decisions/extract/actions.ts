@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { extractDecisionsFromText, storeSuggestions } from '@/lib/ai/suggestion-pipeline';
 import { extractTextSchema } from '@/lib/validation';
+import { logger } from '@/lib/logger';
 
 export async function extractFromText(
   text: string,
@@ -30,8 +31,7 @@ export async function extractFromText(
 
     return { found };
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Unknown error';
-    console.error('Extract failed:', message);
-    return { error: `Extraction failed: ${message}` };
+    logger.error('Extract from text failed', err, { userId: user.id, projectId });
+    return { error: 'Extraction failed. Please try again.' };
   }
 }

@@ -1,7 +1,13 @@
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { stripe } from '@/lib/stripe/client';
+import { env } from '@/lib/env';
 import type { User } from '@/types/decisions';
+
+const bodySchema = z.object({
+  plan: z.enum(['pro', 'team']).default('pro'),
+});
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -23,8 +29,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
   }
 
-  const body = await request.json().catch(() => ({}));
-  const plan = (body as { plan?: string }).plan === 'team' ? 'team' : 'pro';
+  let parsedBody;
+  try {
+    parsedBody = bodySchema.parse(await request.json());
+  } catch {
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+  }
+  const plan = parsedBody.plan;
 
   if (profile.subscription_tier === plan) {
     return NextResponse.json(
@@ -33,7 +44,6 @@ export async function POST(request: Request) {
     );
   }
 
-  // Create or reuse Stripe customer
   let customerId = profile.stripe_customer_id;
   if (!customerId) {
     const customer = await stripe.customers.create({
@@ -50,19 +60,20 @@ export async function POST(request: Request) {
 
   const priceId =
     plan === 'team'
-      ? process.env.NEXT_PUBLIC_STRIPE_TEAM_PRICE_ID
-      : process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID;
+      ? env().NEXT_PUBLIC_STRIPE_TEAM_PRICE_ID
+      : env().NEXT_PUBLIC_STRIPE_PRO_PRICE_ID;
   if (!priceId) {
     return NextResponse.json({ error: 'Stripe price not configured' }, { status: 500 });
   }
 
+  const appUrl = env().NEXT_PUBLIC_APP_URL;
   const session = await stripe.checkout.sessions.create({
     customer: customerId,
     mode: 'subscription',
     line_items: [{ price: priceId, quantity: 1 }],
     metadata: { plan },
-    success_url: `${request.headers.get('origin')}/dashboard/settings?billing=success`,
-    cancel_url: `${request.headers.get('origin')}/dashboard/settings?billing=cancelled`,
+    success_url: `${appUrl}/dashboard/settings?billing=success`,
+    cancel_url: `${appUrl}/dashboard/settings?billing=cancelled`,
   });
 
   return NextResponse.json({ checkout_url: session.url });

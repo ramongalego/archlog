@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { createClient } from '@/lib/supabase/server';
+import { logger } from '@/lib/logger';
 import { embedQuery } from './embed-query';
 
 interface MatchedDecision {
@@ -57,12 +58,19 @@ export async function* queryDecisions(params: {
     });
 
     if (error) {
-      console.error('pgvector search failed:', error.message);
+      logger.warn('pgvector search failed, falling back to recency', {
+        userId: params.userId,
+        projectId: params.projectId,
+        error: error.message,
+      });
     } else {
       decisions = (data as MatchedDecision[]) ?? [];
     }
   } catch (err) {
-    console.error('Query embedding failed:', err);
+    logger.error('Query embedding failed, falling back to recency', err, {
+      userId: params.userId,
+      projectId: params.projectId,
+    });
   }
 
   // Fallback: if semantic search returned nothing (no embeddings yet), use recency
