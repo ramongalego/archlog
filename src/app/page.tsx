@@ -37,66 +37,216 @@ export default function LandingPage() {
       />
 
       {/* Hero — notebook/ledger aesthetic */}
-      <section className="relative overflow-hidden px-6 py-24 sm:py-32">
-        {/* Horizontal ruled lines — like a legal pad */}
+      <section className="relative overflow-hidden px-6 pt-20 pb-24 sm:pt-28 sm:pb-32">
+        {/* Horizontal ruled lines — like a legal pad, fading at edges */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 bg-[repeating-linear-gradient(to_bottom,transparent_0,transparent_39px,rgba(0,0,0,0.04)_39px,rgba(0,0,0,0.04)_40px)] dark:bg-[repeating-linear-gradient(to_bottom,transparent_0,transparent_39px,rgba(255,255,255,0.04)_39px,rgba(255,255,255,0.04)_40px)]"
+          className="pointer-events-none absolute inset-0 bg-[repeating-linear-gradient(to_bottom,transparent_0,transparent_39px,rgba(0,0,0,0.035)_39px,rgba(0,0,0,0.035)_40px)] dark:bg-[repeating-linear-gradient(to_bottom,transparent_0,transparent_39px,rgba(255,255,255,0.035)_39px,rgba(255,255,255,0.035)_40px)] [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_85%)]"
         />
-        {/* Left margin rule — like a notebook margin */}
+        {/* Double margin rule — amber outer, faint gray inner, like a real legal pad */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-y-0 left-8 hidden w-0.5 bg-amber-500/50 md:block lg:left-16"
+          className="pointer-events-none absolute inset-y-16 left-8 hidden w-px bg-gradient-to-b from-transparent via-amber-500/60 to-transparent md:block lg:left-16"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-16 left-10 hidden w-px bg-gradient-to-b from-transparent via-amber-500/20 to-transparent md:block lg:left-[4.625rem]"
         />
 
-        <div className="relative mx-auto max-w-2xl text-center">
-          <div className="inline-flex items-center rounded-full border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 px-3 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 mb-8">
-            Decision memory for teams that move fast
-          </div>
-          <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-100 sm:text-5xl lg:text-6xl leading-[1.1]">
-            <span className="relative inline-block">
-              <span className="relative z-10">Remember</span>
-              {/* Hand-drawn oval — editorial pen-marking */}
-              <svg
+        <div className="relative mx-auto max-w-6xl">
+          <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
+            {/* Left: copy */}
+            <div className="relative">
+              {/* Eyebrow — editorial label */}
+              <div className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-700 dark:text-amber-500">
+                <span className="h-px w-8 bg-amber-500/60" aria-hidden="true" />
+                Decision Log · Vol. 01
+              </div>
+
+              <h1 className="mt-6 text-[2.75rem] font-bold tracking-tight text-gray-900 dark:text-gray-100 sm:text-5xl lg:text-[3.75rem] leading-[1.05]">
+                <span className="relative inline-block">
+                  <span className="relative z-10">Remember</span>
+                  {/* Hand-drawn oval — editorial pen-marking */}
+                  <svg
+                    aria-hidden="true"
+                    viewBox="0 0 220 80"
+                    preserveAspectRatio="none"
+                    className="absolute inset-[-0.25em_-0.4em_-0.2em_-0.4em] z-0 h-[calc(100%+0.45em)] w-[calc(100%+0.8em)] overflow-visible text-amber-500"
+                  >
+                    <path
+                      d="M 12 42 C 22 10, 200 8, 212 38 C 215 70, 25 74, 10 44"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </span>{' '}
+                <span className="font-serif italic text-gray-900 dark:text-gray-100">why</span>
+                <br />
+                you made
+                <br />
+                <span className="relative inline-block">
+                  that call
+                  {/* Subtle underline sweep */}
+                  <svg
+                    aria-hidden="true"
+                    viewBox="0 0 260 14"
+                    preserveAspectRatio="none"
+                    className="absolute -bottom-2 left-0 h-[0.3em] w-full overflow-visible text-amber-500/80"
+                  >
+                    <path
+                      d="M 4 8 C 60 2, 140 12, 256 6"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      fill="none"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </span>
+              </h1>
+
+              <p className="mt-8 max-w-md text-lg leading-relaxed text-gray-600 dark:text-gray-400">
+                Log decisions as they happen. Track what worked and what didn&apos;t. Query your
+                history when you need to remember why.
+              </p>
+
+              <div className="mt-10 flex flex-wrap items-center gap-3">
+                <Link
+                  href="/signup"
+                  className="rounded-lg bg-gray-900 dark:bg-white px-6 py-2.5 text-sm font-medium text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 transition-all shadow-sm hover:shadow-[0_0_0_4px_rgba(245,158,11,0.22)]"
+                >
+                  Start logging decisions
+                </Link>
+                <Link
+                  href="/login"
+                  className="rounded-lg border border-gray-200 dark:border-gray-800 px-6 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
+                >
+                  Sign in
+                </Link>
+              </div>
+
+              <p className="mt-5 text-sm text-gray-400 dark:text-gray-600">
+                Free plan includes 50 decisions and AI drafting.
+              </p>
+            </div>
+
+            {/* Right: decision-entry page mock — tilted, hand-annotated */}
+            <div className="relative hidden lg:block">
+              {/* Soft amber glow behind the card */}
+              <div
                 aria-hidden="true"
-                viewBox="0 0 220 80"
-                preserveAspectRatio="none"
-                className="absolute inset-[-0.25em_-0.4em_-0.2em_-0.4em] z-0 h-[calc(100%+0.45em)] w-[calc(100%+0.8em)] overflow-visible text-amber-500"
-              >
-                <path
-                  d="M 12 42 C 22 10, 200 8, 212 38 C 215 70, 25 74, 10 44"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  fill="none"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </span>{' '}
-            why
-            <br />
-            <span className="text-gray-400 dark:text-gray-500">you made that call</span>
-          </h1>
-          <p className="mt-6 text-lg text-gray-500 dark:text-gray-400 leading-relaxed max-w-lg mx-auto">
-            Log decisions as they happen. Track what worked and what didn&apos;t. Query your history
-            when you need to remember why.
-          </p>
-          <div className="mt-10 flex justify-center gap-3">
-            <Link
-              href="/signup"
-              className="rounded-lg bg-gray-900 dark:bg-white px-6 py-2.5 text-sm font-medium text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 transition-all shadow-sm hover:shadow-[0_0_0_4px_rgba(245,158,11,0.18)]"
-            >
-              Start logging decisions
-            </Link>
-            <Link
-              href="/login"
-              className="rounded-lg border border-gray-200 dark:border-gray-800 px-6 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
-            >
-              Sign in
-            </Link>
+                className="pointer-events-none absolute -inset-8 bg-[radial-gradient(ellipse_at_center,rgba(245,158,11,0.12),transparent_65%)]"
+              />
+
+              <div className="relative mx-auto w-full max-w-md rotate-[1.5deg] transition-transform duration-500 hover:rotate-0">
+                {/* Page corner (dog-ear) */}
+                <div
+                  aria-hidden="true"
+                  className="absolute -top-px -right-px z-20 h-10 w-10 overflow-hidden"
+                >
+                  <div className="absolute inset-0 bg-[linear-gradient(225deg,transparent_50%,rgba(245,158,11,0.18)_50%,rgba(245,158,11,0.18)_58%,transparent_58%)]" />
+                </div>
+
+                {/* The "page" */}
+                <div className="relative rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 px-7 pt-6 pb-7 shadow-[0_30px_60px_-20px_rgba(17,24,39,0.25),0_12px_24px_-12px_rgba(245,158,11,0.15)] dark:shadow-[0_30px_60px_-20px_rgba(0,0,0,0.6)]">
+                  {/* Header meta row */}
+                  <div className="flex items-center justify-between border-b border-dashed border-gray-200 dark:border-gray-800 pb-3">
+                    <span className="font-mono text-[11px] tracking-wider text-gray-400 dark:text-gray-500">
+                      DECISION · 2026-02-14
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400">
+                      <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                      Pricing
+                    </span>
+                  </div>
+
+                  {/* Title */}
+                  <h3 className="mt-4 font-serif text-xl leading-snug text-gray-900 dark:text-gray-100">
+                    Raise Pro plan from $9 to $12/mo
+                  </h3>
+
+                  {/* Reasoning */}
+                  <div className="mt-4">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-gray-400 dark:text-gray-500">
+                      Why
+                    </p>
+                    <p className="mt-1.5 text-sm leading-relaxed text-gray-700 dark:text-gray-300">
+                      Free-to-paid conversion is healthy, churn is flat, and support load per user
+                      is higher than modeled. Room to move without risking the funnel.
+                    </p>
+                  </div>
+
+                  {/* Context */}
+                  <div className="mt-4">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-gray-400 dark:text-gray-500">
+                      Context
+                    </p>
+                    <p className="mt-1.5 text-sm leading-relaxed text-gray-700 dark:text-gray-300">
+                      Three competitors priced $14-19. Our positioning tolerates a premium signal.
+                    </p>
+                  </div>
+
+                  {/* Footer: confidence + outcome */}
+                  <div className="mt-5 flex items-center justify-between border-t border-dashed border-gray-200 dark:border-gray-800 pt-4">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-gray-400 dark:text-gray-500">
+                        Confidence
+                      </span>
+                      <div className="flex gap-0.5" aria-hidden="true">
+                        <span className="h-1.5 w-3 rounded-sm bg-amber-500" />
+                        <span className="h-1.5 w-3 rounded-sm bg-amber-500" />
+                        <span className="h-1.5 w-3 rounded-sm bg-gray-200 dark:bg-gray-800" />
+                      </div>
+                    </div>
+                    <span className="font-mono text-[11px] uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                      Review in 90d
+                    </span>
+                  </div>
+                </div>
+
+                {/* Outcome stamp — tilted, amber, feels hand-applied */}
+                <div
+                  aria-hidden="true"
+                  className="absolute -bottom-4 -left-6 rotate-[-8deg] rounded-sm border-2 border-amber-500/70 bg-white/95 dark:bg-gray-950/95 px-3 py-1.5 shadow-md"
+                >
+                  <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-amber-600 dark:text-amber-400">
+                    Vindicated
+                  </span>
+                </div>
+
+                {/* Handwritten margin note with arrow */}
+                <div
+                  aria-hidden="true"
+                  className="absolute -right-4 top-24 w-36 -rotate-[4deg] text-right"
+                >
+                  <p className="font-serif text-[13px] italic leading-tight text-amber-700 dark:text-amber-500/90">
+                    findable 3 months from now
+                  </p>
+                  <svg
+                    viewBox="0 0 140 40"
+                    className="ml-auto mt-1 h-6 w-24 text-amber-500/80"
+                    fill="none"
+                  >
+                    <path
+                      d="M 136 4 C 90 12, 40 18, 6 34"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d="M 14 28 L 6 34 L 14 38"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </div>
           </div>
-          <p className="mt-6 text-sm text-gray-400 dark:text-gray-600">
-            Free plan includes 50 decisions and AI drafting.
-          </p>
         </div>
       </section>
 
@@ -511,24 +661,35 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* CTA — notebook bookend to the hero */}
-      <section className="relative overflow-hidden border-t border-gray-100 dark:border-gray-800/60 bg-gray-50/50 dark:bg-gray-900/30 px-6 py-24">
-        {/* Horizontal ruled lines */}
+      {/* CTA — closing signature, notebook bookend to the hero */}
+      <section className="relative overflow-hidden border-t border-gray-100 dark:border-gray-800/60 bg-gray-50/50 dark:bg-gray-900/30 px-6 py-28">
+        {/* Horizontal ruled lines, fading at edges */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 bg-[repeating-linear-gradient(to_bottom,transparent_0,transparent_39px,rgba(0,0,0,0.04)_39px,rgba(0,0,0,0.04)_40px)] dark:bg-[repeating-linear-gradient(to_bottom,transparent_0,transparent_39px,rgba(255,255,255,0.04)_39px,rgba(255,255,255,0.04)_40px)]"
+          className="pointer-events-none absolute inset-0 bg-[repeating-linear-gradient(to_bottom,transparent_0,transparent_39px,rgba(0,0,0,0.035)_39px,rgba(0,0,0,0.035)_40px)] dark:bg-[repeating-linear-gradient(to_bottom,transparent_0,transparent_39px,rgba(255,255,255,0.035)_39px,rgba(255,255,255,0.035)_40px)] [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_85%)]"
         />
-        {/* Right margin rule — bookend variation of the hero's left rule */}
+        {/* Right margin rule — bookend to the hero's left */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-y-0 right-8 hidden w-0.5 bg-amber-500/50 md:block lg:right-16"
+          className="pointer-events-none absolute inset-y-20 right-8 hidden w-px bg-gradient-to-b from-transparent via-amber-500/60 to-transparent md:block lg:right-16"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-20 right-10 hidden w-px bg-gradient-to-b from-transparent via-amber-500/20 to-transparent md:block lg:right-[4.625rem]"
         />
 
         <div className="relative mx-auto max-w-2xl text-center">
-          <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100 sm:text-3xl">
+          {/* Closing eyebrow — bookend to hero's "Vol. 01" */}
+          <div className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-700 dark:text-amber-500">
+            <span className="h-px w-8 bg-amber-500/60" aria-hidden="true" />
+            End of Page
+            <span className="h-px w-8 bg-amber-500/60" aria-hidden="true" />
+          </div>
+
+          <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100 sm:text-4xl leading-[1.1]">
             Stop{' '}
             <span className="relative inline-block">
-              <span className="relative z-10">forgetting</span>
+              <span className="relative z-10 font-serif italic">forgetting</span>
               <svg
                 aria-hidden="true"
                 viewBox="0 0 220 80"
@@ -541,21 +702,60 @@ export default function LandingPage() {
                   strokeWidth="2.5"
                   fill="none"
                   strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
               </svg>
             </span>{' '}
-            why you made that call
+            why you made that call.
           </h2>
-          <p className="mt-4 text-gray-500 dark:text-gray-400 max-w-md mx-auto">
+
+          <p className="mt-6 text-gray-500 dark:text-gray-400 max-w-md mx-auto">
             Two minutes to log a decision now saves hours of re-debating later.
           </p>
-          <div className="mt-8 flex justify-center gap-3">
+
+          <div className="mt-10 flex justify-center">
             <Link
               href="/signup"
-              className="rounded-lg bg-gray-900 dark:bg-white px-6 py-2.5 text-sm font-medium text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 transition-all shadow-sm hover:shadow-[0_0_0_4px_rgba(245,158,11,0.18)]"
+              className="group inline-flex items-center gap-2 rounded-lg bg-gray-900 dark:bg-white px-6 py-2.5 text-sm font-medium text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 transition-all shadow-sm hover:shadow-[0_0_0_4px_rgba(245,158,11,0.22)]"
             >
               Start logging decisions
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 20 20"
+                className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M4 10h12M12 6l4 4-4 4" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </Link>
+          </div>
+
+          {/* Signature flourish — the "signed off" bookend */}
+          <div className="mt-14 flex items-center justify-center gap-4">
+            <span
+              aria-hidden="true"
+              className="h-px w-16 bg-gradient-to-r from-transparent to-amber-500/50"
+            />
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 140 36"
+              className="h-8 w-32 text-amber-500/80"
+              fill="none"
+            >
+              {/* A simple hand-drawn "signature" squiggle */}
+              <path
+                d="M 6 24 C 14 8, 22 8, 28 22 C 32 30, 38 30, 44 22 C 50 12, 58 14, 62 24 C 66 32, 74 30, 82 20 C 90 10, 100 14, 106 22 C 110 28, 118 26, 134 16"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
+            </svg>
+            <span
+              aria-hidden="true"
+              className="h-px w-16 bg-gradient-to-l from-transparent to-amber-500/50"
+            />
           </div>
         </div>
       </section>
